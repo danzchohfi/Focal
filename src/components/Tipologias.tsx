@@ -81,7 +81,7 @@ export default function Tipologias({
             </div>
           ) : (
             <p className="mt-7 inline-block rounded-full border border-white/25 px-4 py-1.5 text-sm text-white/70">
-              100% vendido
+              Empreendimento entregue
             </p>
           )}
         </div>

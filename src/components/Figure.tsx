@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { asset } from "@/lib/asset";
 
 /**
  * Imagem editorial com fallback: enquanto os assets finais (fotos, drones,
@@ -26,7 +27,7 @@ export default function Figure({
       <div className={`card-foto relative ${aspect} w-full rounded-sm`}>
         {src ? (
           <Image
-            src={src}
+            src={asset(src)!}
             alt={alt}
             fill
             sizes={sizes}

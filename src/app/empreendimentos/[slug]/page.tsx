@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Faq from "@/components/Faq";
@@ -11,6 +12,7 @@ import Tipologias from "@/components/Tipologias";
 import WhatsAppCta from "@/components/WhatsAppCta";
 import StickyCta from "@/components/StickyCta";
 import { porSlug, publicados } from "@/data/empreendimentos";
+import { asset } from "@/lib/asset";
 import { site } from "@/lib/site";
 import { emVenda, statusLabel } from "@/lib/types";
 
@@ -97,9 +99,26 @@ export default async function EmpreendimentoPage({
 
       {/* 1 — Hero */}
       <section className="relative overflow-hidden">
-        <div className="foto-placeholder absolute inset-0" aria-hidden />
-        {/* TODO go-live: vídeo (em obra/lançamento) ou foto definitiva (entregue) */}
-        <div className="relative mx-auto w-full max-w-6xl px-5 pb-12 pt-24 md:pt-32">
+        {e.heroImage ? (
+          <>
+            <Image
+              src={asset(e.heroImage)!}
+              alt={`${e.nome} — ${e.bairro}`}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/85 via-[#0a0a0a]/45 to-[#0a0a0a]/85"
+              aria-hidden
+            />
+          </>
+        ) : (
+          <div className="foto-placeholder absolute inset-0" aria-hidden />
+        )}
+        {/* TODO go-live: vídeo (em obra/lançamento) substitui a foto no hero */}
+        <div className="relative mx-auto w-full max-w-6xl px-5 pb-12 pt-28 md:min-h-[58vh] md:pt-44">
           <nav aria-label="Breadcrumb" className="text-xs text-white/50">
             <Link href="/empreendimentos" className="hover:text-[#7fb89a]">
               Empreendimentos
@@ -164,8 +183,12 @@ export default async function EmpreendimentoPage({
               </div>
             ) : (
               <div>
-                <dt className="text-xs uppercase tracking-wider text-white/45">Situação</dt>
-                <dd className="mt-1 text-sm font-semibold text-white/70">100% vendido</dd>
+                <dt className="text-xs uppercase tracking-wider text-white/45">
+                  {e.anoEntrega ? "Entregue em" : "Situação"}
+                </dt>
+                <dd className="mt-1 text-sm font-semibold text-white/70">
+                  {e.anoEntrega ?? "Entregue"}
+                </dd>
               </div>
             )}
           </dl>

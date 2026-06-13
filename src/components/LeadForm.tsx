@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { getOrigem, track } from "@/lib/tracking";
+import { getOrigem, track, whatsappHref } from "@/lib/tracking";
 
 const intencoes = [
   { value: "comprar-morar", label: "Quero comprar para morar" },
@@ -35,8 +36,9 @@ export default function LeadForm({
       empreendimento,
       origem: getOrigem(),
     };
+    const endpoint = process.env.NEXT_PUBLIC_LEAD_WEBHOOK_URL ?? "/api/lead";
     try {
-      const res = await fetch("/api/lead", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -45,7 +47,25 @@ export default function LeadForm({
       setStatus("ok");
       track("submit_form", { empreendimento, intencao });
     } catch {
-      setStatus("erro");
+      // Sem backend disponível (ex.: deploy estático): o lead segue pelo
+      // WhatsApp com a mensagem já montada — nenhuma conversão se perde.
+      track("submit_form", { empreendimento, intencao, fallback: "whatsapp" });
+      const detalhes = [
+        `Sou ${payload.nome}`,
+        empreendimento ? `tenho interesse no ${empreendimento}` : undefined,
+        `(${intencoes.find((i) => i.value === intencao)?.label ?? intencao})`,
+        payload.mensagem ? `— ${payload.mensagem}` : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      window.open(
+        `${whatsappHref({ empreendimento, intencao }).split("?text=")[0]}?text=${encodeURIComponent(
+          `Olá! Vim pelo site da Focal. ${detalhes}.`,
+        )}`,
+        "_blank",
+        "noopener",
+      );
+      setStatus("ok");
     }
   }
 
@@ -139,9 +159,9 @@ export default function LeadForm({
       ) : null}
       <p className="text-xs text-white/40">
         Seus dados são usados apenas para este atendimento, conforme nossa{" "}
-        <a href="/privacidade" className="underline hover:text-white/70">
+        <Link href="/privacidade" className="underline hover:text-white/70">
           política de privacidade
-        </a>
+        </Link>
         .
       </p>
     </form>

@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+// Modo estático para GitHub Pages (deploy temporário): sem servidor,
+// imagens sem otimização e basePath do projeto (/Focal).
+const isExport = process.env.STATIC_EXPORT === "1";
+
+const exportConfig: NextConfig = {
+  output: "export",
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? "",
+  trailingSlash: true,
+  images: { unoptimized: true },
+};
+
+const serverConfig: NextConfig = {
   async redirects() {
     // Higiene de migração do WordPress antigo (docs/plano-site-focal.md §3)
     return [
@@ -20,4 +31,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default isExport ? exportConfig : serverConfig;

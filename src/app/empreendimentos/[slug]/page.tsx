@@ -9,6 +9,7 @@ import Reveal from "@/components/Reveal";
 import StatusBadge from "@/components/StatusBadge";
 import Tipologias from "@/components/Tipologias";
 import WhatsAppCta from "@/components/WhatsAppCta";
+import StickyCta from "@/components/StickyCta";
 import { porSlug, publicados } from "@/data/empreendimentos";
 import { site } from "@/lib/site";
 import { emVenda, statusLabel } from "@/lib/types";
@@ -90,6 +91,9 @@ export default async function EmpreendimentoPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {venda ? (
+        <StickyCta empreendimento={e.nome} precoAPartir={e.precoAPartir} />
+      ) : null}
 
       {/* 1 — Hero */}
       <section className="relative overflow-hidden">
@@ -370,6 +374,9 @@ export default async function EmpreendimentoPage({
           </div>
         </section>
       ) : null}
+
+      {/* respiro para a barra de CTA fixa no mobile */}
+      {venda ? <div aria-hidden className="h-16 md:hidden" /> : null}
     </>
   );
 }

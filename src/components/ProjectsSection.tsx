@@ -39,14 +39,15 @@ export default function ProjectsSection() {
         </div>
       </Reveal>
 
-      {/* Cards */}
-      <div className="mx-auto mt-12 max-w-[1400px] px-4 md:px-6">
+      {/* Cards — carrossel fluido de ponta a ponta, como no site atual
+          (cards de ~245px a 1440 e ~341px a 1920, gap de 36px) */}
+      <div className="mt-12 w-full px-[18px]">
         {lista.length > 0 ? (
           <div key={filtro} className="contents">
             <Carousel
               arrows
               dots={false}
-              itemClassName="w-[82%] p-2 sm:w-[46%] md:w-[33%] lg:w-[20%]"
+              itemClassName="w-[86%] p-[18px] sm:w-[46%] md:w-[33.33%] lg:w-[20%]"
             >
               {lista.map((p, i) => (
                 <div

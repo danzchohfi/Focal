@@ -1,169 +1,125 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { getOrigem, track, whatsappHref } from "@/lib/tracking";
+import { site, waLink } from "@/lib/site";
 
-const intencoes = [
-  { value: "comprar-morar", label: "Quero comprar para morar" },
-  { value: "comprar-investir", label: "Quero investir" },
-  { value: "terreno", label: "Tenho um terreno para apresentar" },
-  { value: "corretor", label: "Sou corretor(a) — parceria" },
-  { value: "fornecedor", label: "Sou fornecedor" },
-  { value: "cliente", label: "Já sou cliente / assistência técnica" },
-];
+type Variant = "artur" | "entregue" | "atendimento";
+type Tone = "verde" | "claro" | "escuro";
 
+const ASSUNTOS = ["Vendas", "Assistência Técnica", "Fornecedores", "Terrenos"];
+const QUANDO = ["Neste mês", "Daqui 1 a 3 meses", "Acima de 3 meses"];
+const ORCAMENTO = ["Abaixo de 1 mi", "Entre 1 mi e 1,5 mi", "Entre 1,5 mi e 2,0 mi"];
+
+// Formulário de atendimento (mesmos campos do CF7 do site atual).
+// Envia para /api/lead quando disponível; no build estático cai no WhatsApp.
 export default function LeadForm({
-  empreendimento,
-  intencaoInicial,
+  variant,
+  tone,
+  contexto,
+  className = "",
 }: {
-  empreendimento?: string;
-  intencaoInicial?: string;
+  variant: Variant;
+  tone: Tone;
+  contexto?: string;
+  className?: string;
 }) {
-  const [status, setStatus] = useState<"idle" | "enviando" | "ok" | "erro">("idle");
-  const [intencao, setIntencao] = useState(intencaoInicial ?? "comprar-morar");
+  const [estado, setEstado] = useState<"idle" | "enviando" | "ok" | "erro">("idle");
+
+  const input =
+    tone === "escuro"
+      ? "w-full border border-white/60 bg-transparent px-4 py-3 text-[15px] text-white placeholder-white/85 outline-none focus:border-white"
+      : "w-full border border-black/15 bg-white px-4 py-3 text-[15px] text-black placeholder-black/60 outline-none focus:border-black/40";
+  const select =
+    tone === "escuro"
+      ? `${input} appearance-none`
+      : `${input} appearance-none`;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("enviando");
-    const form = new FormData(e.currentTarget);
-    const payload = {
-      nome: form.get("nome"),
-      email: form.get("email"),
-      telefone: form.get("telefone"),
-      mensagem: form.get("mensagem"),
-      intencao,
-      empreendimento,
-      origem: getOrigem(),
-    };
-    const endpoint = process.env.NEXT_PUBLIC_LEAD_WEBHOOK_URL ?? "/api/lead";
+    const form = e.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    const payload = { ...data, contexto: contexto ?? "site", origem: window.location.pathname };
+
+    setEstado("enviando");
     try {
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("falha no envio");
-      setStatus("ok");
-      track("submit_form", { empreendimento, intencao });
+      if (!res.ok) throw new Error(String(res.status));
+      setEstado("ok");
+      form.reset();
     } catch {
-      // Sem backend disponível (ex.: deploy estático): o lead segue pelo
-      // WhatsApp com a mensagem já montada — nenhuma conversão se perde.
-      track("submit_form", { empreendimento, intencao, fallback: "whatsapp" });
-      const detalhes = [
-        `Sou ${payload.nome}`,
-        empreendimento ? `tenho interesse no ${empreendimento}` : undefined,
-        `(${intencoes.find((i) => i.value === intencao)?.label ?? intencao})`,
-        payload.mensagem ? `— ${payload.mensagem}` : undefined,
-      ]
-        .filter(Boolean)
-        .join(" ");
-      window.open(
-        `${whatsappHref({ empreendimento, intencao }).split("?text=")[0]}?text=${encodeURIComponent(
-          `Olá! Vim pelo site da Focal. ${detalhes}.`,
-        )}`,
-        "_blank",
-        "noopener",
-      );
-      setStatus("ok");
+      // Build estático (GitHub Pages) não tem API: encaminha via WhatsApp com contexto.
+      const texto = `Olá Focal Inc! Meu nome é ${data["nome"] ?? ""}. ${
+        contexto ? `Tenho interesse em: ${contexto}. ` : ""
+      }${data["assunto"] ? `Assunto: ${data["assunto"]}. ` : ""}${
+        data["mensagem"] ? `Mensagem: ${data["mensagem"]}` : ""
+      }`;
+      window.open(waLink(site.whatsappComercial, texto), "_blank", "noopener");
+      setEstado("ok");
     }
   }
 
-  if (status === "ok") {
+  if (estado === "ok") {
     return (
-      <div className="rounded-sm border border-[#3e7c5b] bg-[#3e7c5b]/10 p-6">
-        <p className="text-lg font-semibold text-white">Recebido. Obrigado!</p>
-        <p className="mt-2 text-sm text-[#a3a39c]">
-          Nossa equipe responde em até 24h úteis. Se preferir agilidade, fale
-          agora com a Laís no WhatsApp.
+      <div className={`${className} py-8 text-center`}>
+        <p className={`din text-[22px] ${tone === "verde" || tone === "escuro" ? "text-white" : "text-ink-2"}`}>
+          Recebemos seus dados!
+        </p>
+        <p className={`mt-2 text-[15px] ${tone === "verde" || tone === "escuro" ? "text-white/90" : "text-black/70"}`}>
+          Nossa equipe entrará em contato em breve.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm text-white/80">
-          Nome
-          <input
-            required
-            name="nome"
-            autoComplete="name"
-            className="rounded-sm border border-white/20 bg-transparent px-4 py-3 text-white placeholder:text-white/30"
-            placeholder="Seu nome"
-          />
-        </label>
-        <label className="grid gap-1.5 text-sm text-white/80">
-          Telefone / WhatsApp
-          <input
-            required
-            name="telefone"
-            type="tel"
-            autoComplete="tel"
-            className="rounded-sm border border-white/20 bg-transparent px-4 py-3 text-white placeholder:text-white/30"
-            placeholder="(11) 9 0000-0000"
-          />
-        </label>
+    <form onSubmit={onSubmit} className={`${className} space-y-3`}>
+      <input required name="nome" type="text" placeholder="Nome Completo" className={input} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <input required name="email" type="email" placeholder="E-mail" className={input} />
+        <input required name="telefone" type="tel" placeholder="Telefone" className={input} />
       </div>
-      <label className="grid gap-1.5 text-sm text-white/80">
-        E-mail
-        <input
-          required
-          name="email"
-          type="email"
-          autoComplete="email"
-          className="rounded-sm border border-white/20 bg-transparent px-4 py-3 text-white placeholder:text-white/30"
-          placeholder="voce@email.com"
-        />
-      </label>
-      <label className="grid gap-1.5 text-sm text-white/80">
-        Como podemos ajudar?
-        <select
-          name="intencao"
-          value={intencao}
-          onChange={(e) => setIntencao(e.target.value)}
-          className="rounded-sm border border-white/20 bg-[#0a0a0a] px-4 py-3 text-white"
-        >
-          {intencoes.map((i) => (
-            <option key={i.value} value={i.value}>
-              {i.label}
+      <select name="assunto" className={select} defaultValue="Vendas" aria-label="Assunto">
+        {ASSUNTOS.map((a) => (
+          <option key={a}>{a}</option>
+        ))}
+      </select>
+
+      {variant === "artur" && (
+        <>
+          <select name="quando" className={select} defaultValue="" aria-label="Quando pretende adquirir o imóvel">
+            <option value="" disabled>
+              Quando pretende adquirir o imóvel
             </option>
-          ))}
-        </select>
-      </label>
-      <label className="grid gap-1.5 text-sm text-white/80">
-        Mensagem (opcional)
-        <textarea
-          name="mensagem"
-          rows={3}
-          className="rounded-sm border border-white/20 bg-transparent px-4 py-3 text-white placeholder:text-white/30"
-          placeholder={
-            empreendimento
-              ? `Ex.: quero saber a disponibilidade do ${empreendimento}`
-              : "Conte rapidamente o que procura"
-          }
-        />
-      </label>
+            {QUANDO.map((q) => (
+              <option key={q}>{q}</option>
+            ))}
+          </select>
+          <select name="orcamento" className={select} defaultValue="" aria-label="Qual o seu orçamento">
+            <option value="" disabled>
+              Qual o seu orçamento
+            </option>
+            {ORCAMENTO.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </>
+      )}
+
+      {variant !== "artur" && (
+        <textarea name="mensagem" placeholder="Mensagem" rows={4} className={input} />
+      )}
+
       <button
         type="submit"
-        disabled={status === "enviando"}
-        className="rounded-full bg-[#3e7c5b] px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#356b4e] disabled:opacity-50"
+        disabled={estado === "enviando"}
+        className="bg-ink px-8 py-3.5 text-[12px] font-semibold uppercase tracking-wider text-white transition-opacity hover:opacity-85 disabled:opacity-50"
       >
-        {status === "enviando" ? "Enviando…" : "Enviar"}
+        {estado === "enviando" ? "Enviando…" : "Solicitar Atendimento"}
       </button>
-      {status === "erro" ? (
-        <p role="alert" className="text-sm text-[#d8949f]">
-          Não foi possível enviar. Tente novamente ou fale direto no WhatsApp.
-        </p>
-      ) : null}
-      <p className="text-xs text-white/40">
-        Seus dados são usados apenas para este atendimento, conforme nossa{" "}
-        <Link href="/privacidade" className="underline hover:text-white/70">
-          política de privacidade
-        </Link>
-        .
-      </p>
     </form>
   );
 }

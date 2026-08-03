@@ -1,16 +1,20 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
 @theme {
-  --color-ink: #0a0a0a;
-  --color-ink-2: #121212;
-  --color-ink-3: #1c1c1c;
-  --color-paper: #fafaf7;
-  --color-mist: #a3a39c;
-  --color-verde: #3e7c5b;
-  --color-verde-claro: #7fb89a;
-  --color-bordo: #6e2b36;
+  /* Paleta do tema atual (Uncode/focalinc.com.br) */
+  --color-ink: #111111;
+  --color-ink-2: #222222;
+  --color-ink-3: #333333;
+  --color-gray-med: #707070;
+  --color-gray-soft: #cfcfcf;
+  --color-body: #dbdbdb;
+  --color-light: #f3f3f3;
+  --color-off: #f7f7f7;
+  --color-verde: #189673;
 
-  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-din: din-2014, sans-serif;
+  --font-sans: var(--font-open-sans), "Open Sans", sans-serif;
 }
 
 html {
@@ -18,70 +22,132 @@ html {
 }
 
 body {
-  background: var(--color-ink);
-  color: var(--color-paper);
+  background: var(--color-body);
+  color: #000;
   font-family: var(--font-sans);
+  font-size: 15px;
   -webkit-font-smoothing: antialiased;
 }
 
-::selection {
-  background: var(--color-verde);
-  color: var(--color-paper);
+/* Títulos em DIN 2014 como no site atual (o peso 900 é sintetizado a partir do 700, igual ao original) */
+.din {
+  font-family: var(--font-din);
+  font-weight: 900;
 }
 
-/* ——— Motion nível 1 (CSS) — respeita prefers-reduced-motion ——— */
+.h-hero {
+  font-size: clamp(52px, 6.8vw, 98px);
+  line-height: 1.1;
+}
+
+.h-hero-lp {
+  font-size: clamp(56px, 8.7vw, 125px);
+  line-height: 1.05;
+}
+
+.h-section {
+  font-size: clamp(34px, 4.5vw, 65px);
+  line-height: 1.2;
+}
+
+.h-card {
+  font-size: clamp(30px, 3.3vw, 48px);
+  line-height: 1.2;
+}
+
+.h-num {
+  font-size: clamp(44px, 6.8vw, 98px);
+  line-height: 1.1;
+}
+
+/* Badge verde de bairro/status */
+.badge-verde {
+  display: inline-block;
+  background: var(--color-verde);
+  color: #fff;
+  font-family: var(--font-din);
+  font-weight: 900;
+  font-size: clamp(14px, 1.4vw, 20px);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+/* Reveal on scroll */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity 0.7s ease,
-    transform 0.7s ease;
+  transform: translateY(28px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
 }
+
 .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
 
-.card-foto {
-  overflow: hidden;
-}
-.card-foto > * {
-  transition: transform 0.6s ease;
-}
-.card-foto:hover > * {
-  transform: scale(1.03);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   .reveal {
     opacity: 1;
     transform: none;
     transition: none;
   }
-  .card-foto > *,
-  .card-foto:hover > * {
-    transition: none;
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Carrossel por scroll-snap */
+.snap-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-track::-webkit-scrollbar {
+  display: none;
+}
+
+.snap-track > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Balão do widget de WhatsApp */
+@keyframes joinchat-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
     transform: none;
   }
 }
 
-/* Placeholder editorial para fotos ainda não recebidas */
-.foto-placeholder {
-  background:
-    radial-gradient(120% 120% at 20% 0%, rgba(62, 124, 91, 0.25), transparent 55%),
-    radial-gradient(120% 140% at 90% 100%, rgba(110, 43, 54, 0.18), transparent 60%),
-    linear-gradient(160deg, #181818 0%, #101010 60%, #0c0c0c 100%);
+.wa-bubble {
+  animation: joinchat-in 0.4s ease both;
 }
 
-/* Foco visível acessível */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--color-verde-claro);
-  outline-offset: 3px;
+/* Seta do hero */
+@keyframes bounce-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bounce-slow,
+  .wa-bubble {
+    animation: none;
+  }
 }

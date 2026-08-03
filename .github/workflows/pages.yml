@@ -39,6 +39,9 @@ jobs:
           STATIC_EXPORT: "1"
           NEXT_PUBLIC_BASE_PATH: /Focal
           NEXT_PUBLIC_SITE_URL: https://danzchohfi.github.io/Focal
+          # GA4 para medir o teste A/B (Settings → Secrets and variables →
+          # Actions → Variables → NEXT_PUBLIC_GA_ID = G-XXXXXXX)
+          NEXT_PUBLIC_GA_ID: ${{ vars.NEXT_PUBLIC_GA_ID }}
       - run: touch out/.nojekyll
       - uses: actions/configure-pages@v5
         with:

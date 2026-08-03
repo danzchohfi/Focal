@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { site, waLink } from "@/lib/site";
+import { track } from "@/lib/track";
 
 // Botão flutuante de WhatsApp (equivalente ao Joinchat do site atual).
 export default function WhatsAppWidget() {
@@ -14,7 +15,7 @@ export default function WhatsAppWidget() {
   }, []);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+    <div className="wa-widget fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
       {bubble && !dismissed && (
         <div className="wa-bubble relative rounded-2xl bg-white px-4 py-2 shadow-lg">
           <button
@@ -32,6 +33,7 @@ export default function WhatsAppWidget() {
         href={waLink(site.whatsapp)}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => track("clique_whatsapp", { posicao: "widget" })}
         aria-label="Abrir bate-papo no WhatsApp"
         className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25d366] shadow-lg transition-transform hover:scale-105"
       >

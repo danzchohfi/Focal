@@ -17,24 +17,22 @@ export default function Home() {
 
         {/* Focamos no que importa */}
         <section className="bg-white">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
+          <div className="grid grid-cols-1 lg:min-h-[820px] lg:grid-cols-[3fr_2fr]">
             <div
-              className="min-h-[380px] bg-cover bg-center lg:min-h-[640px]"
+              className="min-h-[380px] bg-cover bg-center lg:min-h-full"
               style={{ backgroundImage: `url(${asset("/wp/facilities-piscina-2.jpg")})` }}
               role="img"
               aria-label="Rooftop com piscina de empreendimento Focal"
             />
-            <div className="flex flex-col justify-center px-6 py-16 md:px-16 md:py-20">
+            <div className="flex flex-col justify-center px-6 py-16 md:py-20 lg:pl-24 lg:pr-16 xl:pl-28">
               <Reveal>
-                <h6 className="din text-[14px] uppercase tracking-wide text-ink">
-                  Focamos no que importa
-                </h6>
-                <h2 className="din h-section mt-4 text-ink-2">
+                <h6 className="kicker text-ink/70">Focamos no que importa</h6>
+                <h2 className="din h-section mt-5 text-ink-2">
                   + 500MM
                   <br />
                   VENDIDOS
                 </h2>
-                <div className="mt-8 max-w-md space-y-4 text-[15px] leading-relaxed text-ink-2">
+                <div className="mt-9 max-w-[60ch] space-y-6 text-[16px] leading-[1.8] text-ink-2">
                   <p>
                     Somos fascinados pela arquitetura pois acreditamos na sua capacidade de criar
                     experiências singulares e nos inspirar a uma vida melhor.

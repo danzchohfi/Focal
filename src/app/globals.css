@@ -15,6 +15,19 @@
 
   --font-din: din-2014, sans-serif;
   --font-sans: var(--font-open-sans), "Open Sans", sans-serif;
+
+  /* Vocabulário de motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 200ms;
+  --dur-med: 450ms;
+  --dur-slow: 700ms;
+
+  /* Superfícies */
+  --radius-card: 8px;
+  --radius-field: 4px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06), 0 16px 40px -16px rgba(0, 0, 0, 0.28);
+  --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.12), 0 16px 48px -12px rgba(0, 0, 0, 0.24);
 }
 
 html {
@@ -25,39 +38,89 @@ body {
   background: var(--color-body);
   color: #000;
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Títulos em DIN 2014 como no site atual (o peso 900 é sintetizado a partir do 700, igual ao original) */
+p {
+  text-wrap: pretty;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-verde);
+  outline-offset: 2px;
+}
+
+.on-dark :focus-visible,
+.on-dark:focus-visible {
+  outline-color: #fff;
+}
+
+::selection {
+  background: var(--color-verde);
+  color: #fff;
+}
+
+/* ——— Tipografia DIN 2014 (400/700 reais; sem bold sintético) ——— */
 .din {
   font-family: var(--font-din);
-  font-weight: 900;
+  font-weight: 700;
+  font-synthesis-weight: none;
+}
+
+.din-book {
+  font-family: var(--font-din);
+  font-weight: 400;
+  font-synthesis-weight: none;
+}
+
+.kicker {
+  font-family: var(--font-din);
+  font-weight: 700;
+  font-synthesis-weight: none;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
 }
 
 .h-hero {
   font-size: clamp(52px, 6.8vw, 98px);
-  line-height: 1.1;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .h-hero-lp {
   font-size: clamp(56px, 8.7vw, 125px);
-  line-height: 1.05;
+  line-height: 1;
+  letter-spacing: -0.015em;
 }
 
 .h-section {
   font-size: clamp(34px, 4.5vw, 65px);
-  line-height: 1.2;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.h-sub {
+  font-size: clamp(26px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 
 .h-card {
   font-size: clamp(30px, 3.3vw, 48px);
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 .h-num {
   font-size: clamp(44px, 6.8vw, 98px);
-  line-height: 1.1;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Badge verde de bairro/status */
@@ -66,37 +129,129 @@ body {
   background: var(--color-verde);
   color: #fff;
   font-family: var(--font-din);
-  font-weight: 900;
-  font-size: clamp(14px, 1.4vw, 20px);
-  padding: 6px 12px;
+  font-weight: 700;
+  font-synthesis-weight: none;
+  font-size: 14px;
+  padding: 5px 10px;
   border-radius: 8px;
 }
 
-/* Reveal on scroll */
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.9s ease, transform 0.9s ease;
+/* Receita única de CTA */
+.cta {
+  font-family: var(--font-din);
+  font-weight: 700;
+  font-synthesis-weight: none;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
 }
 
-.reveal.is-visible {
+/* ——— Reveal on scroll (gate por JS: sem JS, nada fica invisível) ——— */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity var(--dur-slow) var(--ease-out-soft),
+    transform var(--dur-slow) var(--ease-out-expo);
+}
+
+.js .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
+/* Stagger de filhos dentro de um grupo revelado */
+.js .reveal-group > * {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity var(--dur-slow) var(--ease-out-soft),
+    transform var(--dur-slow) var(--ease-out-expo);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.js .reveal-group.is-visible > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* ——— Coreografia de entrada do hero ——— */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hero-in {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
-  html {
-    scroll-behavior: auto;
+  .hero-in {
+    opacity: 0;
+    animation: hero-in 0.8s var(--ease-out-expo) forwards;
+  }
+
+  .hero-in-1 {
+    animation-duration: 0.6s;
+    animation-delay: 0.2s;
+  }
+
+  .hero-in-2 {
+    animation-delay: 0.35s;
+  }
+
+  .hero-in-3 {
+    animation-delay: 0.7s;
+  }
+
+  .hero-in-4 {
+    animation-delay: 1.2s;
+  }
+
+  @keyframes filter-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .filter-in-item {
+    opacity: 0;
+    animation: filter-in 0.4s var(--ease-out-soft) forwards;
+    animation-delay: calc(var(--i, 0) * 45ms);
   }
 }
 
-/* Carrossel por scroll-snap */
+/* Underline animado da navegação */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 250ms var(--ease-out-soft);
+}
+
+.nav-link:hover::after,
+.nav-link.is-active::after {
+  transform: scaleX(1);
+}
+
+/* ——— Carrossel por scroll-snap ——— */
 .snap-track {
   display: flex;
   overflow-x: auto;
@@ -127,7 +282,7 @@ body {
 }
 
 .wa-bubble {
-  animation: joinchat-in 0.4s ease both;
+  animation: joinchat-in 0.4s var(--ease-out-soft) both;
 }
 
 /* Seta do hero */
@@ -145,7 +300,34 @@ body {
   animation: bounce-slow 2.2s ease-in-out infinite;
 }
 
+/* Spinner do botão de envio */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .js .reveal,
+  .js .reveal-group > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   .animate-bounce-slow,
   .wa-bubble {
     animation: none;

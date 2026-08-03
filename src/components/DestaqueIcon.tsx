@@ -1,4 +1,4 @@
-// Pictogramas dos "Destaques" (equivalentes aos ícones do site atual).
+// Pictogramas dos "Destaques" e specs (traço 2.1, caixa óptica no chamador).
 const paths: Record<string, React.ReactNode> = {
   height: (
     <>
@@ -31,11 +31,7 @@ const paths: Record<string, React.ReactNode> = {
       <path d="M8 14V5a2 2 0 0 1 4 0M14 14V5a2 2 0 0 1 4 0" />
     </>
   ),
-  shield: (
-    <>
-      <path d="M12 3 5 6v5c0 4.5 3 8.2 7 9.5 4-1.3 7-5 7-9.5V6l-7-3z" />
-    </>
-  ),
+  shield: <path d="M12 3 5 6v5c0 4.5 3 8.2 7 9.5 4-1.3 7-5 7-9.5V6l-7-3z" />,
   layers: (
     <>
       <path d="m12 3 9 5-9 5-9-5 9-5z" />
@@ -74,11 +70,7 @@ const paths: Record<string, React.ReactNode> = {
       <rect x="4" y="11" width="16" height="9" rx="1.5" />
     </>
   ),
-  gym: (
-    <>
-      <path d="M7 8v8M17 8v8M4 10v4M20 10v4M7 12h10" />
-    </>
-  ),
+  gym: <path d="M7 8v8M17 8v8M4 10v4M20 10v4M7 12h10" />,
   beauty: (
     <>
       <path d="M12 3s4 4.5 4 8a4 4 0 0 1-8 0c0-3.5 4-8 4-8z" />
@@ -92,17 +84,25 @@ const paths: Record<string, React.ReactNode> = {
       <path d="M8 6h2" />
     </>
   ),
+  // Specs das LPs
+  ruler: <path d="m3 17 4 4L21 7l-4-4L3 17zM8 12l1.5 1.5M11 9l1.5 1.5M14 6l1.5 1.5" />,
+  bed: (
+    <>
+      <path d="M3 7v10M3 15h18M21 15v-4a2 2 0 0 0-2-2h-8v6" />
+      <circle cx="6.5" cy="11" r="1.5" />
+    </>
+  ),
 };
 
-export default function DestaqueIcon({ nome }: { nome: string }) {
+export default function DestaqueIcon({ nome, size = 34 }: { nome: string; size?: number }) {
   return (
     <svg
-      width="34"
-      height="34"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.6"
+      strokeWidth="2.1"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden

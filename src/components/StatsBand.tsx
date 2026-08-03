@@ -9,56 +9,50 @@ const stats = [
   { alvo: 80000, fmt: (v: number) => `${v.toLocaleString("pt-BR")}m²`, label: "Construídos" },
 ];
 
-// Faixa de números com contadores animados sobre a foto aérea (VOO-PASSARO).
+// Faixa de números sobre a foto aérea. SSR/first paint já mostra os valores
+// finais; a contagem anima só quando a faixa entra no viewport.
 export default function StatsBand() {
   const ref = useRef<HTMLDivElement>(null);
-  const [on, setOn] = useState(false);
-  const [vals, setVals] = useState(stats.map(() => 0));
+  const [vals, setVals] = useState(stats.map((s) => s.alvo));
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const io = new IntersectionObserver(
       (e) => {
-        if (e[0].isIntersecting) {
-          setOn(true);
-          io.disconnect();
-        }
+        if (!e[0].isIntersecting) return;
+        io.disconnect();
+        const dur = 1600;
+        const t0 = performance.now();
+        const tick = (t: number) => {
+          const k = Math.min(1, (t - t0) / dur);
+          const ease = 1 - Math.pow(1 - k, 3);
+          setVals(stats.map((s) => Math.round(s.alvo * ease)));
+          if (k < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       },
-      { threshold: 0.35 }
+      { threshold: 0.2, rootMargin: "0px 0px -10% 0px" }
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!on) return;
-    const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dur = reduzido ? 0 : 1600;
-    const t0 = performance.now();
-    let raf = 0;
-    const tick = (t: number) => {
-      const k = dur === 0 ? 1 : Math.min(1, (t - t0) / dur);
-      const ease = 1 - Math.pow(1 - k, 3);
-      setVals(stats.map((s) => Math.round(s.alvo * ease)));
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [on]);
-
   return (
     <section
       ref={ref}
-      className="relative bg-cover bg-center py-24 md:py-28"
+      className="relative bg-cover bg-center bg-scroll py-32 md:bg-fixed md:py-44"
       style={{ backgroundImage: `url(${asset("/wp/VOO-PASSARO.jpg")})` }}
     >
       <div className="absolute inset-0 bg-black/35" />
-      <div className="relative mx-auto grid max-w-[1300px] grid-cols-1 gap-12 px-6 text-center text-white sm:grid-cols-3">
+      <div className="relative mx-auto grid max-w-[1300px] grid-cols-1 gap-14 px-6 text-center text-white sm:grid-cols-3">
         {stats.map((s, i) => (
           <div key={s.label}>
             <p className="din h-num">{s.fmt(vals[i])}</p>
-            <p className="mt-2 text-[17px] md:text-[18px]">{s.label}</p>
+            <p className="din mt-3 text-[13px] uppercase tracking-[0.15em] text-white/85">
+              {s.label}
+            </p>
           </div>
         ))}
       </div>

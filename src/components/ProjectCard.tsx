@@ -1,51 +1,70 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { asset } from "@/lib/asset";
 import type { Projeto } from "@/data/projetos";
 
-// Ícones dos specs do card (cama e metragem), como no site atual.
+// Ícones dos specs do card (traço 2.2, mesmo peso entre si).
 function BedIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M3 6v12h2v-2h14v2h2v-8a3 3 0 0 0-3-3h-7v5H5V6H3zm4 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 7v10M3 15h18M21 15v-4a2 2 0 0 0-2-2h-8v6" />
+      <circle cx="6.5" cy="11" r="1.5" />
     </svg>
   );
 }
 
 function RulerIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="m3 17 4 4L21 7l-4-4L3 17zM8 12l1.5 1.5M11 9l1.5 1.5M14 6l1.5 1.5" />
     </svg>
   );
 }
 
 export default function ProjectCard({ projeto }: { projeto: Projeto }) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // A imagem pode carregar antes da hidratação — o onLoad se perde.
+  useEffect(() => {
+    if (imgRef.current?.complete) setLoaded(true);
+  }, []);
+
   return (
     <Link
       href={`/${projeto.slug}`}
-      className="group relative block h-[520px] overflow-hidden rounded-sm md:h-[560px]"
+      className="group on-dark relative block h-[520px] overflow-hidden rounded-lg bg-ink-3 transition-shadow duration-300 hover:shadow-[0_2px_8px_rgba(0,0,0,.08),0_24px_48px_-16px_rgba(0,0,0,.35)] md:h-[560px]"
     >
-      <div
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
-        style={{ backgroundImage: `url(${asset(projeto.cardImg)})` }}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        ref={imgRef}
+        src={asset(projeto.cardImg)}
+        alt=""
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-[900ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05] ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
       />
-      {/* Gradiente inferior (tmb-overlay-gradient-bottom do tema atual) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-ink-2 via-ink-2/40 to-transparent opacity-90" />
-      <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+      {/* Scrim ancorado na base: a foto respira, o texto lê */}
+      <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_top,rgba(0,0,0,.82)_0%,rgba(0,0,0,.55)_28%,rgba(0,0,0,.22)_58%,transparent_100%)] opacity-90 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="absolute inset-x-0 bottom-0 p-7 text-white transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1 md:p-8">
         <h3 className="din h-card">
           {projeto.nomeCard[0]}
           <br />
           {projeto.nomeCard[1]}
         </h3>
-        <span className="badge-verde mt-3">{projeto.bairro}</span>
-        <div className="mt-4 space-y-2">
-          <div className="flex items-center gap-3">
+        <span className="badge-verde mt-4">{projeto.bairro}</span>
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center gap-3 text-white/90">
             <BedIcon />
-            <span className="din text-[17px] md:text-[18px]">{projeto.cardSpecs.dorm}</span>
+            <span className="din text-[15px]">{projeto.cardSpecs.dorm}</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 text-white/90">
             <RulerIcon />
-            <span className="din text-[17px] md:text-[18px]">{projeto.cardSpecs.area}</span>
+            <span className="din text-[15px]">{projeto.cardSpecs.area}</span>
           </div>
         </div>
       </div>

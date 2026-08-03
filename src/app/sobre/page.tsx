@@ -28,7 +28,7 @@ export default function SobrePage() {
         <div className="flex flex-1 flex-col justify-center px-8 py-16 md:px-16">
           <Reveal>
             <h1 className="din h-hero text-white">Focal Inc</h1>
-            <div className="mt-10 max-w-md space-y-5 text-[17px] leading-relaxed text-white md:text-[18px]">
+            <div className="mt-10 max-w-[52ch] space-y-6 text-[17px] leading-[1.8] text-white/85 md:text-[18px]">
               <p>
                 Somos fascinados pela arquitetura pois acreditamos na sua capacidade de criar
                 experiências singulares e nos inspirar a uma vida melhor.

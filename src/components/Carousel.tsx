@@ -78,7 +78,7 @@ export default function Carousel({
             type="button"
             aria-label="Anterior"
             onClick={() => go(-1)}
-            className={`${arrowCls} left-2 ${atStart ? "pointer-events-none opacity-0" : ""}`}
+            className={`${arrowCls} left-5 ${atStart ? "pointer-events-none opacity-0" : ""}`}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="m14 18-6-6 6-6" />
@@ -88,7 +88,7 @@ export default function Carousel({
             type="button"
             aria-label="Próximo"
             onClick={() => go(1)}
-            className={`${arrowCls} right-2 ${atEnd ? "pointer-events-none opacity-0" : ""}`}
+            className={`${arrowCls} right-5 ${atEnd ? "pointer-events-none opacity-0" : ""}`}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="m10 6 6 6-6 6" />

@@ -50,21 +50,21 @@ export default function ProjectCard({ projeto }: { projeto: Projeto }) {
       />
       {/* Scrim ancorado na base: a foto respira, o texto lê */}
       <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[linear-gradient(to_top,rgba(0,0,0,.82)_0%,rgba(0,0,0,.55)_28%,rgba(0,0,0,.22)_58%,transparent_100%)] opacity-90 transition-opacity duration-500 group-hover:opacity-100" />
-      <div className="absolute inset-x-0 bottom-0 p-7 text-white transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1 md:p-8">
+      <div className="absolute inset-x-0 bottom-0 p-5 text-white transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1 md:p-6">
         <h3 className="din h-card">
           {projeto.nomeCard[0]}
           <br />
           {projeto.nomeCard[1]}
         </h3>
         <span className="badge-verde mt-4">{projeto.bairro}</span>
-        <div className="mt-6 space-y-4">
-          <div className="flex items-center gap-3 text-white/90">
+        <div className="mt-6 space-y-3.5">
+          <div className="flex items-center gap-3 text-white/95">
             <BedIcon />
-            <span className="din text-[15px]">{projeto.cardSpecs.dorm}</span>
+            <span className="din text-[16px] md:text-[17px]">{projeto.cardSpecs.dorm}</span>
           </div>
-          <div className="flex items-center gap-3 text-white/90">
+          <div className="flex items-center gap-3 text-white/95">
             <RulerIcon />
-            <span className="din text-[15px]">{projeto.cardSpecs.area}</span>
+            <span className="din text-[16px] md:text-[17px]">{projeto.cardSpecs.area}</span>
           </div>
         </div>
       </div>

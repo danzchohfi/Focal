@@ -33,6 +33,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${openSans.variable} h-full`}>
       <body className="flex min-h-full flex-col">
+        {/* Gate de motion: sem JS nada fica invisível (reveals só ativam com .js) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
         {children}
         <WhatsAppWidget />
       </body>

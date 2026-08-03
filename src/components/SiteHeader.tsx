@@ -23,9 +23,7 @@ export default function SiteHeader({
   const dim = tone === "claro" ? "text-white/60" : "text-black/50";
 
   return (
-    <header
-      className={`${fixed ? "absolute" : "relative"} inset-x-0 top-0 z-40`}
-    >
+    <header className={`${fixed ? "absolute" : "relative"} inset-x-0 top-0 z-40`}>
       <div className="flex items-center justify-between px-6 py-6 md:px-10">
         {showLogo ? (
           <Link href="/" aria-label="Focal Inc — Home">
@@ -36,23 +34,49 @@ export default function SiteHeader({
         )}
 
         {/* Menu desktop */}
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className={`hidden items-center gap-9 md:flex ${tone === "claro" ? "on-dark" : ""}`}>
           {menu.map((item) => (
             <div key={item.label} className="group relative">
-              <Link
-                href={item.href}
-                className={`text-[15px] ${active === item.label ? dim : base} transition-opacity hover:opacity-70`}
-              >
-                {item.label}
-                {item.children && <span className="ml-1 inline-block text-[10px] align-middle">⌄</span>}
-              </Link>
+              {item.children ? (
+                <Link
+                  href={item.href}
+                  aria-haspopup="menu"
+                  className={`nav-link inline-flex items-center gap-1.5 text-[15px] ${
+                    active === item.label ? `${dim} is-active` : base
+                  }`}
+                >
+                  {item.label}
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="transition-transform duration-200 group-hover:rotate-180"
+                    aria-hidden
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </Link>
+              ) : (
+                <Link
+                  href={item.href}
+                  className={`nav-link text-[15px] ${active === item.label ? `${dim} is-active` : base}`}
+                >
+                  {item.label}
+                </Link>
+              )}
               {item.children && (
-                <div className="invisible absolute right-0 top-full z-50 min-w-52 translate-y-1 bg-ink py-2 opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="invisible absolute right-0 top-full z-50 min-w-52 translate-y-1 rounded-md bg-ink py-2 opacity-0 shadow-[0_4px_12px_rgba(0,0,0,.12),0_16px_48px_-12px_rgba(0,0,0,.24)] transition-[opacity,transform,visibility] delay-100 duration-200 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-hover:delay-0"
+                  role="menu"
+                >
                   {item.children.map((c) => (
                     <Link
                       key={c.label}
                       href={c.href}
-                      className="block px-5 py-2 text-[14px] text-white/90 hover:bg-white/10"
+                      role="menuitem"
+                      className="on-dark block px-5 py-2 text-[14px] text-white/90 transition-colors duration-200 hover:bg-white/10"
                     >
                       {c.label}
                     </Link>

@@ -13,23 +13,24 @@ export default function ProjectsSection() {
     filtro === "todos" ? projetos : projetos.filter((p) => p.categorias.includes(filtro));
 
   return (
-    <section id="empreendimentos" className="bg-white py-20 md:py-24">
+    <section id="empreendimentos" className="bg-white py-24 md:py-32">
       <Reveal className="px-6 text-center">
-        <h1 className="font-[500] h-hero text-ink-2" style={{ fontFamily: "var(--font-din)" }}>
-          Empreendimentos
-        </h1>
+        <h1 className="din-book h-hero text-ink-2">Empreendimentos</h1>
       </Reveal>
 
       {/* Filtros */}
-      <Reveal className="mt-8 flex justify-center px-4" delay={100}>
-        <div className="flex max-w-full flex-wrap justify-center gap-1 rounded-full bg-off p-1.5 shadow-sm">
+      <Reveal className="mt-14 flex justify-center px-4" delay={100}>
+        <div className="flex max-w-full flex-wrap justify-center gap-1 rounded-full bg-off p-2 shadow-sm">
           {filtros.map((f) => (
             <button
               key={f.id}
               type="button"
+              aria-pressed={filtro === f.id}
               onClick={() => setFiltro(f.id)}
-              className={`rounded-full px-5 py-2 text-[14px] transition-all ${
-                filtro === f.id ? "bg-white font-semibold shadow" : "text-black/70 hover:text-black"
+              className={`rounded-full px-6 py-2.5 text-[15px] transition-[color,background-color,box-shadow] duration-250 ${
+                filtro === f.id
+                  ? "bg-white text-black shadow"
+                  : "text-black/60 hover:text-black"
               }`}
             >
               {f.label}
@@ -39,17 +40,25 @@ export default function ProjectsSection() {
       </Reveal>
 
       {/* Cards */}
-      <div className="mx-auto mt-10 max-w-[1400px] px-4 md:px-6">
+      <div className="mx-auto mt-12 max-w-[1400px] px-4 md:px-6">
         {lista.length > 0 ? (
-          <Carousel
-            arrows
-            dots={false}
-            itemClassName="w-[82%] p-2 sm:w-[46%] md:w-[33%] lg:w-[20%]"
-          >
-            {lista.map((p) => (
-              <ProjectCard key={p.slug} projeto={p} />
-            ))}
-          </Carousel>
+          <div key={filtro} className="contents">
+            <Carousel
+              arrows
+              dots={false}
+              itemClassName="w-[82%] p-2 sm:w-[46%] md:w-[33%] lg:w-[20%]"
+            >
+              {lista.map((p, i) => (
+                <div
+                  key={p.slug}
+                  className="filter-in-item h-full"
+                  style={{ "--i": i } as React.CSSProperties}
+                >
+                  <ProjectCard projeto={p} />
+                </div>
+              ))}
+            </Carousel>
+          </div>
         ) : (
           <p className="py-16 text-center text-[15px] text-black/50">
             Nenhum empreendimento nesta categoria no momento.

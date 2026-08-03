@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { site, waLink } from "@/lib/site";
+import { track } from "@/lib/track";
 
 type Variant = "artur" | "entregue" | "atendimento";
 type Tone = "verde" | "claro" | "escuro";
@@ -68,6 +69,7 @@ export default function LeadForm({
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(String(res.status));
+      track("submit_form", { contexto: contexto ?? "site", canal: "api" });
       setEstado("ok");
       form.reset();
     } catch {
@@ -79,6 +81,7 @@ export default function LeadForm({
       }${data["assunto"] ? `Assunto: ${data["assunto"]}. ` : ""}${
         data["mensagem"] ? `Mensagem: ${data["mensagem"]}` : ""
       }`;
+      track("submit_form", { contexto: contexto ?? "site", canal: "whatsapp_fallback" });
       setWaHref(waLink(site.whatsappComercial, texto));
       setEstado("fallback");
     }
@@ -112,6 +115,7 @@ export default function LeadForm({
             href={waHref}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => track("clique_whatsapp", { posicao: "form-fallback" })}
             className="cta mt-6 inline-flex items-center gap-2 rounded-[4px] bg-verde px-8 py-3.5 text-white transition-opacity duration-200 hover:opacity-90"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>

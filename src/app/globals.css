@@ -269,6 +269,11 @@ p {
   flex-shrink: 0;
 }
 
+/* Na LP de conversão a sticky bar substitui o widget flutuante */
+.lp-b ~ .wa-widget {
+  display: none;
+}
+
 /* Balão do widget de WhatsApp */
 @keyframes joinchat-in {
   from {

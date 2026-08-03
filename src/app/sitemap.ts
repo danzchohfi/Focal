@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { publicados } from "@/data/empreendimentos";
+import { projetos } from "@/data/projetos";
 import { site } from "@/lib/site";
 
 export const dynamic = "force-static";
@@ -7,23 +7,23 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   const estaticas = [
     "",
-    "/empreendimentos",
     "/sobre",
-    "/parcerias",
+    "/parcerias-2",
     "/atendimento",
-    "/clientes",
-    "/privacidade",
+    "/politica-de-privacidade-e-seguranca",
+    "/tour-virtual",
+    "/download-folder-digital",
   ].map((path) => ({
     url: `${site.url}${path}`,
     lastModified: new Date(),
     priority: path === "" ? 1 : 0.7,
   }));
 
-  const produtos = publicados.map((e) => ({
-    url: `${site.url}/empreendimentos/${e.slug}`,
+  const paginas = projetos.map((p) => ({
+    url: `${site.url}/${p.slug}`,
     lastModified: new Date(),
     priority: 0.9,
   }));
 
-  return [...estaticas, ...produtos];
+  return [...estaticas, ...paginas];
 }

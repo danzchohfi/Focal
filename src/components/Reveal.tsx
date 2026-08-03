@@ -2,15 +2,17 @@
 
 import { useEffect, useRef } from "react";
 
-/** Fade-up suave ao entrar no viewport (motion nível 1 do plano). */
+// Fade-up suave ao entrar no viewport (IntersectionObserver, roda uma vez).
 export default function Reveal({
   children,
   className = "",
+  delay = 0,
   as: Tag = "div",
 }: {
   children: React.ReactNode;
   className?: string;
-  as?: "div" | "section" | "li" | "article";
+  delay?: number;
+  as?: "div" | "section" | "li" | "span";
 }) {
   const ref = useRef<HTMLElement | null>(null);
 
@@ -19,22 +21,25 @@ export default function Reveal({
     if (!el) return;
     const io = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            io.unobserve(entry.target);
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            (e.target as HTMLElement).classList.add("is-visible");
+            io.unobserve(e.target);
           }
-        }
+        });
       },
-      { threshold: 0.12 },
+      { threshold: 0.12 }
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
   return (
-    // @ts-expect-error ref polimórfico simples
-    <Tag ref={ref} className={`reveal ${className}`}>
+    <Tag
+      ref={ref as React.Ref<never>}
+      className={`reveal ${className}`}
+      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+    >
       {children}
     </Tag>
   );

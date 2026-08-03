@@ -1,127 +1,48 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import ProvaBar from "@/components/ProvaBar";
+import Logo from "@/components/Logo";
 import Reveal from "@/components/Reveal";
-import WhatsAppCta from "@/components/WhatsAppCta";
-import { site } from "@/lib/site";
+import SiteHeader from "@/components/SiteHeader";
+import { asset } from "@/lib/asset";
 
-export const metadata: Metadata = {
-  title: "Sobre",
-  description:
-    "Incorporadora paulistana fundada em 2016: terrenos escolhidos a dedo, arquitetura intencional e preço calibrado ao mercado.",
-};
+export const metadata: Metadata = { title: "Sobre" };
 
+// Página Sobre: split 50/50 — imagem à esquerda, painel escuro com o
+// manifesto à direita (como no site atual).
 export default function SobrePage() {
   return (
-    <>
-      <section className="mx-auto w-full max-w-6xl px-5 py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#7fb89a]">
-          Sobre a Focal
-        </p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl">
-          Focar naquilo que importa.
-        </h1>
-        <div className="mt-8 grid gap-10 md:grid-cols-2">
-          <p className="text-lg leading-relaxed text-white/85">
-            A Focal nasceu em 2016 para ocupar uma lacuna: incorporar com visão de
-            arquitetura, fora da linha de produção. Cada projeto começa com a
-            mesma pergunta — <em>“eu moraria aqui?”</em> — e com um terreno
-            escolhido a dedo em bairros consolidados de São Paulo.
-          </p>
-          <p className="text-base leading-relaxed text-[#a3a39c]">
-            Compramos terrenos espetaculares e vendemos dentro do preço de
-            mercado. O resultado são projetos que funcionam no dia a dia — luz,
-            ventilação, plantas que envelhecem bem — em endereços que permanecem
-            valiosos.
-          </p>
-        </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-6xl px-5">
-        <ProvaBar />
-      </section>
-
-      {/* Pilares */}
-      <section className="mx-auto w-full max-w-6xl px-5 py-16">
-        <Reveal>
-          <h2 className="text-3xl font-bold tracking-tight">No que acreditamos</h2>
-        </Reveal>
-        <div className="mt-10 grid gap-10 md:grid-cols-3">
-          {site.pilares.map((p, i) => (
-            <Reveal key={p.titulo}>
-              <span className="text-sm font-semibold text-[#3e7c5b]">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <h3 className="mt-2 text-xl font-bold">{p.titulo}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-[#a3a39c]">{p.texto}</p>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Processo */}
-      <section id="processo" className="border-t border-white/10 bg-[#0d0d0d] py-16">
-        <div className="mx-auto w-full max-w-6xl px-5">
+    <main className="grid min-h-svh grid-cols-1 lg:grid-cols-2">
+      <div className="relative min-h-[40svh] lg:min-h-svh">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${asset("/wp/e9782ff72e19a6f01b1def46620edd00.jpg")})` }}
+          role="img"
+          aria-label="Fachada de empreendimento Focal"
+        />
+        <Link href="/" className="absolute left-6 top-6 z-10 md:left-10 md:top-8" aria-label="Focal Inc — Home">
+          <Logo tone="branco" className="h-7 w-auto md:h-8" />
+        </Link>
+      </div>
+      <div className="relative flex flex-col bg-ink-2">
+        <SiteHeader tone="claro" active="Sobre" fixed={false} showLogo={false} />
+        <div className="flex flex-1 flex-col justify-center px-8 py-16 md:px-16">
           <Reveal>
-            <h2 className="text-3xl font-bold tracking-tight">Os 4 passos da Focal</h2>
+            <h1 className="din h-hero text-white">Focal Inc</h1>
+            <div className="mt-10 max-w-md space-y-5 text-[17px] leading-relaxed text-white md:text-[18px]">
+              <p>
+                Somos fascinados pela arquitetura pois acreditamos na sua capacidade de criar
+                experiências singulares e nos inspirar a uma vida melhor.
+              </p>
+              <p>
+                Por isso investimos em fachadas e plantas inovadoras, capazes de redefinir o espaço
+                e surpreender nossos clientes com uma infinidade de detalhes.
+              </p>
+              <p>Focamos naquilo que realmente importa.</p>
+              <p>Essa é a nossa essência. Somos a focal.</p>
+            </div>
           </Reveal>
-          <ol className="mt-10 grid gap-8 md:grid-cols-4">
-            {site.passos.map((passo, i) => (
-              <Reveal key={passo.titulo} as="li">
-                <span className="text-3xl font-bold text-[#3e7c5b]/60">{i + 1}</span>
-                <h3 className="mt-2 font-semibold">{passo.titulo}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#a3a39c]">{passo.texto}</p>
-              </Reveal>
-            ))}
-          </ol>
         </div>
-      </section>
-
-      {/* Quem faz */}
-      <section className="mx-auto w-full max-w-6xl px-5 py-16">
-        <Reveal>
-          <h2 className="text-3xl font-bold tracking-tight">Quem faz</h2>
-          <div className="mt-8 grid gap-10 md:grid-cols-2">
-            <div className="border-l-2 border-[#3e7c5b] pl-5">
-              <h3 className="text-lg font-bold">Ricardo Birger</h3>
-              <p className="mt-1 text-sm text-[#7fb89a]">Sócio · Arquitetura</p>
-              <p className="mt-3 text-sm leading-relaxed text-[#a3a39c]">
-                Arquiteto e sócio da JBA — Jonas Birger Arquitetura, responsável
-                pela visão de projeto que define a Focal: plantas funcionais, luz
-                natural e edifícios que envelhecem bem.
-              </p>
-            </div>
-            <div className="border-l-2 border-[#3e7c5b] pl-5">
-              <h3 className="text-lg font-bold">Antonio Bordon</h3>
-              <p className="mt-1 text-sm text-[#7fb89a]">Sócio · Desenvolvimento</p>
-              <p className="mt-3 text-sm leading-relaxed text-[#a3a39c]">
-                Trajetória em desenvolvimento imobiliário e loteamentos, com o
-                olhar de quem avalia terreno, bairro e produto antes de qualquer
-                lançamento.
-              </p>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section className="border-t border-white/10 bg-[#0d0d0d] py-16">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-6 px-5">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Conheça o resultado desse processo.
-          </h2>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/empreendimentos"
-              className="inline-flex items-center rounded-full bg-white px-7 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#7fb89a]"
-            >
-              Ver empreendimentos
-            </Link>
-            <WhatsAppCta posicao="sobre" variant="outline">
-              Falar com a Focal
-            </WhatsAppCta>
-          </div>
-        </div>
-      </section>
-    </>
+      </div>
+    </main>
   );
 }

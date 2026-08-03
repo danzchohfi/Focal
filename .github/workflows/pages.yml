@@ -4,7 +4,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [claude/focal-site-redesign-svst3x, main]
+    branches: [claude/focal-wordpress-replica-ic6v9k, main]
   workflow_dispatch:
 
 permissions:

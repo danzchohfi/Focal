@@ -3,142 +3,237 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Campo de partículas do hero da LP-C: motes de luz subindo, com repulsão
- * suave ao ponteiro e linhas de conexão perto do cursor.
+ * Campo de partículas em WebGL (three.js) para o hero e a seção de conversão
+ * da LP-C.
  *
- * Diferente de <Particles/> (usado no hero da home), aqui a cor acompanha o
- * verde da marca e há interação — é a camada que dá a sensação de ambiente
- * vivo sem competir com o texto.
+ * A cor padrão é um verde claro, não o verde da marca: o blending é aditivo,
+ * então um tom escuro praticamente desaparece sobre as áreas claras da
+ * fachada. O verde claro soma luz e se lê tanto no escuro quanto no claro,
+ * mantendo a família cromática.
  *
- * Desliga em prefers-reduced-motion e pausa quando sai da viewport.
+ * A animação inteira roda no shader de vértice: cada mote sobe, oscila e
+ * cintila a partir da própria semente, e a repulsão ao ponteiro é calculada
+ * na GPU. A CPU só atualiza dois uniforms por quadro, o que permite ordem de
+ * mil partículas com custo baixo — bem acima do que o canvas 2D sustentaria.
+ *
+ * Sistema de coordenadas: câmera ortográfica em pixels, com Y para baixo,
+ * igual ao DOM. Assim a posição do ponteiro entra no shader sem conversão.
+ *
+ * Degrada em silêncio: sem WebGL, com prefers-reduced-motion, ou se o
+ * contexto se perder, a seção simplesmente fica sem a camada — o conteúdo
+ * embaixo não depende dela.
  */
+
+const VERT = /* glsl */ `
+  uniform float uTime;
+  uniform vec2  uRes;
+  uniform vec2  uPointer;
+  uniform float uRaio;
+  uniform float uDpr;
+
+  attribute float aSeed;
+  attribute float aSize;
+  attribute float aVel;
+  attribute float aAlpha;
+
+  varying float vAlpha;
+
+  void main() {
+    float x = position.x + sin(uTime * 0.32 + aSeed * 6.2831) * 7.0;
+
+    // Sobe continuamente e reentra por baixo (altura + margem).
+    float span = uRes.y + 40.0;
+    float y = mod(position.y - uTime * aVel, span) - 20.0;
+
+    vec2 pos = vec2(x, y);
+
+    // Repulsão: empurra o mote para fora do raio do ponteiro.
+    vec2 d = pos - uPointer;
+    float dist = length(d);
+    if (dist < uRaio && dist > 0.001) {
+      float forca = pow(1.0 - dist / uRaio, 2.0);
+      pos += normalize(d) * forca * 46.0;
+    }
+
+    // Cintilação lenta, dessincronizada por partícula.
+    vAlpha = aAlpha * (0.55 + 0.45 * sin(uTime * 0.9 + aSeed * 12.566));
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 0.0, 1.0);
+    gl_PointSize = aSize * uDpr;
+  }
+`;
+
+const FRAG = /* glsl */ `
+  precision mediump float;
+  uniform vec3 uCor;
+  varying float vAlpha;
+
+  void main() {
+    // Disco suave: sem textura, sem requisição extra.
+    float d = length(gl_PointCoord - vec2(0.5));
+    float a = smoothstep(0.5, 0.0, d);
+    if (a < 0.01) discard;
+    gl_FragColor = vec4(uCor, a * vAlpha);
+  }
+`;
+
 export default function ParticleField({
-  density = 46,
-  tint = "24, 150, 115",
+  density = 900,
+  cor = "#7FEBC8",
 }: {
   density?: number;
-  tint?: string;
+  cor?: string;
 }) {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const canvas = ref.current;
-    const parent = canvas?.parentElement;
-    if (!canvas || !parent) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const host = ref.current;
+    const parent = host?.parentElement;
+    if (!host || !parent) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let w = 0;
-    let h = 0;
-    let raf = 0;
-    let visivel = true;
-    // Ponteiro fora da tela até o primeiro movimento, para não repelir no load.
-    const ponteiro = { x: -9999, y: -9999 };
+    let cancelado = false;
+    let limpar: (() => void) | undefined;
 
-    type P = { x: number; y: number; r: number; vx: number; vy: number; a: number; tw: number };
-    let pts: P[] = [];
+    (async () => {
+      const THREE = await import("three");
+      if (cancelado) return;
 
-    const criar = (): P => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: 0.5 + Math.random() * 1.7,
-      vx: -0.06 + Math.random() * 0.12,
-      vy: -0.12 - Math.random() * 0.16,
-      a: 0.1 + Math.random() * 0.35,
-      tw: Math.random() * Math.PI * 2,
-    });
-
-    const resize = () => {
-      const rect = parent.getBoundingClientRect();
-      w = rect.width;
-      h = rect.height;
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // Densidade proporcional à área, com teto para telas grandes.
-      const alvo = Math.min(density, Math.round((w * h) / 16000));
-      pts = Array.from({ length: Math.max(14, alvo) }, criar);
-    };
-
-    const onPointer = (e: PointerEvent) => {
-      const rect = parent.getBoundingClientRect();
-      ponteiro.x = e.clientX - rect.left;
-      ponteiro.y = e.clientY - rect.top;
-    };
-    const onLeave = () => {
-      ponteiro.x = -9999;
-      ponteiro.y = -9999;
-    };
-
-    const tick = (t: number) => {
-      raf = requestAnimationFrame(tick);
-      if (!visivel) return;
-
-      ctx.clearRect(0, 0, w, h);
-      const RAIO = 130;
-
-      for (const p of pts) {
-        // Repulsão suave: empurra o mote para longe do ponteiro.
-        const dx = p.x - ponteiro.x;
-        const dy = p.y - ponteiro.y;
-        const dist2 = dx * dx + dy * dy;
-        if (dist2 < RAIO * RAIO) {
-          const d = Math.sqrt(dist2) || 1;
-          const forca = (1 - d / RAIO) * 0.7;
-          p.x += (dx / d) * forca;
-          p.y += (dy / d) * forca;
-        }
-
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.y < -6) {
-          p.y = h + 6;
-          p.x = Math.random() * w;
-        }
-        if (p.x < -6) p.x = w + 6;
-        if (p.x > w + 6) p.x = -6;
-
-        const alpha = p.a * (0.6 + 0.4 * Math.sin(t / 1500 + p.tw));
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${tint},${alpha.toFixed(3)})`;
-        ctx.fill();
-
-        // Fio de luz ligando o mote ao cursor quando está perto.
-        if (dist2 < RAIO * RAIO) {
-          const forca = 1 - Math.sqrt(dist2) / RAIO;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(ponteiro.x, ponteiro.y);
-          ctx.strokeStyle = `rgba(${tint},${(forca * 0.16).toFixed(3)})`;
-          ctx.lineWidth = 0.6;
-          ctx.stroke();
-        }
+      let renderer: InstanceType<typeof THREE.WebGLRenderer>;
+      try {
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: "low-power" });
+      } catch {
+        return; // sem WebGL: a seção fica sem a camada
       }
-    };
 
-    resize();
-    raf = requestAnimationFrame(tick);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      renderer.setPixelRatio(dpr);
+      renderer.setClearAlpha(0);
+      renderer.domElement.setAttribute("aria-hidden", "true");
+      renderer.domElement.style.cssText = "position:absolute;inset:0;width:100%;height:100%;";
+      host.appendChild(renderer.domElement);
 
-    const io = new IntersectionObserver(([e]) => (visivel = e.isIntersecting), { threshold: 0 });
-    io.observe(parent);
-    window.addEventListener("resize", resize);
-    parent.addEventListener("pointermove", onPointer);
-    parent.addEventListener("pointerleave", onLeave);
+      const cena = new THREE.Scene();
+      // Ortográfica em pixels, Y para baixo (igual ao DOM).
+      const camera = new THREE.OrthographicCamera(0, 1, 0, 1, -1, 1);
+
+      let w = 0;
+      let h = 0;
+      const geo = new THREE.BufferGeometry();
+
+      const povoar = () => {
+        // Densidade proporcional à área, com teto — telas pequenas não
+        // precisam do mesmo número de motes que um monitor grande.
+        const n = Math.max(160, Math.min(density, Math.round((w * h) / 1500)));
+        const pos = new Float32Array(n * 3);
+        const seed = new Float32Array(n);
+        const size = new Float32Array(n);
+        const vel = new Float32Array(n);
+        const alpha = new Float32Array(n);
+
+        for (let i = 0; i < n; i++) {
+          pos[i * 3] = Math.random() * w;
+          pos[i * 3 + 1] = Math.random() * (h + 40);
+          pos[i * 3 + 2] = 0;
+          seed[i] = Math.random();
+          size[i] = 2.0 + Math.random() * 5.0;
+          vel[i] = 8 + Math.random() * 22;
+          alpha[i] = 0.22 + Math.random() * 0.72;
+        }
+
+        geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
+        geo.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
+        geo.setAttribute("aVel", new THREE.BufferAttribute(vel, 1));
+        geo.setAttribute("aAlpha", new THREE.BufferAttribute(alpha, 1));
+      };
+
+      const mat = new THREE.ShaderMaterial({
+        vertexShader: VERT,
+        fragmentShader: FRAG,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        blending: THREE.AdditiveBlending,
+        uniforms: {
+          uTime: { value: 0 },
+          uRes: { value: new THREE.Vector2(1, 1) },
+          uPointer: { value: new THREE.Vector2(-9999, -9999) },
+          uRaio: { value: 150 },
+          uDpr: { value: dpr },
+          uCor: { value: new THREE.Color(cor) },
+        },
+      });
+
+      const pontos = new THREE.Points(geo, mat);
+      cena.add(pontos);
+
+      const resize = () => {
+        const r = parent.getBoundingClientRect();
+        w = Math.max(1, r.width);
+        h = Math.max(1, r.height);
+        renderer.setSize(w, h, false);
+        camera.left = 0;
+        camera.right = w;
+        camera.top = 0;
+        camera.bottom = h;
+        camera.updateProjectionMatrix();
+        mat.uniforms.uRes.value.set(w, h);
+        povoar();
+      };
+
+      const onPointer = (e: PointerEvent) => {
+        const r = parent.getBoundingClientRect();
+        mat.uniforms.uPointer.value.set(e.clientX - r.left, e.clientY - r.top);
+      };
+      const onLeave = () => mat.uniforms.uPointer.value.set(-9999, -9999);
+
+      let visivel = true;
+      let raf = 0;
+      const relogio = new THREE.Clock();
+
+      const tick = () => {
+        raf = requestAnimationFrame(tick);
+        if (!visivel) return;
+        mat.uniforms.uTime.value = relogio.getElapsedTime();
+        renderer.render(cena, camera);
+      };
+
+      const onPerdaContexto = (e: Event) => {
+        e.preventDefault();
+        cancelAnimationFrame(raf);
+      };
+
+      resize();
+      raf = requestAnimationFrame(tick);
+
+      const io = new IntersectionObserver(([e]) => (visivel = e.isIntersecting), { threshold: 0 });
+      io.observe(parent);
+      const ro = new ResizeObserver(resize);
+      ro.observe(parent);
+      parent.addEventListener("pointermove", onPointer);
+      parent.addEventListener("pointerleave", onLeave);
+      renderer.domElement.addEventListener("webglcontextlost", onPerdaContexto);
+
+      limpar = () => {
+        cancelAnimationFrame(raf);
+        io.disconnect();
+        ro.disconnect();
+        parent.removeEventListener("pointermove", onPointer);
+        parent.removeEventListener("pointerleave", onLeave);
+        renderer.domElement.removeEventListener("webglcontextlost", onPerdaContexto);
+        geo.dispose();
+        mat.dispose();
+        renderer.dispose();
+        renderer.domElement.remove();
+      };
+    })();
 
     return () => {
-      cancelAnimationFrame(raf);
-      io.disconnect();
-      window.removeEventListener("resize", resize);
-      parent.removeEventListener("pointermove", onPointer);
-      parent.removeEventListener("pointerleave", onLeave);
+      cancelado = true;
+      limpar?.();
     };
-  }, [density, tint]);
+  }, [density, cor]);
 
-  return <canvas ref={ref} aria-hidden className="pointer-events-none absolute inset-0 z-[5]" />;
+  return <div ref={ref} aria-hidden className="pointer-events-none absolute inset-0 z-[5]" />;
 }

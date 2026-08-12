@@ -763,7 +763,7 @@ export default function ArturLpC() {
 
       {/* ─────────── Conversão ─────────── */}
       <section id="form" className="relative overflow-hidden border-t border-white/10 py-24 md:py-32">
-        <ParticleField density={30} />
+        <ParticleField density={420} />
         <div className="relative z-10 mx-auto grid max-w-[1240px] grid-cols-1 gap-12 px-5 md:grid-cols-[1fr_minmax(0,480px)] md:items-center md:px-10">
           <div data-reveal>
             <h2 className="din text-[clamp(34px,4.6vw,60px)] leading-[1.04] tracking-[-0.015em]">

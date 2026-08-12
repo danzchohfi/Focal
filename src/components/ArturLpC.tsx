@@ -299,10 +299,14 @@ export default function ArturLpC() {
           // O gatilho é o próprio diagrama, não a seção: no empilhamento
           // mobile a seção é alta demais e a animação terminaria depois de o
           // desenho já ter saído da tela.
+          // Termina em "center 60%": o desenho completa enquanto está inteiro
+          // na tela. Amarrar ao fim do elemento faria a cota chegar aos 5,50
+          // já com o topo do volume acima da dobra — a recompensa da cena
+          // aconteceria fora do enquadramento.
           const st = {
             trigger: escala,
-            start: "top 88%",
-            end: "bottom 55%",
+            start: "top 90%",
+            end: "center 60%",
             scrub: 0.6,
           };
 

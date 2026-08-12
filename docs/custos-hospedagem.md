@@ -1,21 +1,34 @@
 # Custos de hospedagem — tours virtuais + site Focal
 
-**Data:** 11/ago/2026 · **Câmbio:** US$ 1 = R$ 5,09
+**Data:** 12/ago/2026 · **Câmbio:** US$ 1 = R$ 5,09 (cotação de 11/ago)
 **Contexto:** e-mail da Tassiana (Focal) sobre hospedar os tours virtuais das vistas
 dos andares (Rua General Furtado do Nascimento e Rua Massacá), produzidos pela Gyro.
+
+> **Revisão de 12/ago.** Duas informações novas mudaram a conclusão original:
+> 1. **Os tours foram publicados** e estão no ar em `focalinc.com.br/tourvirtual/`.
+>    A pergunta 1 está resolvida (§3).
+> 2. **A mensalidade real da WP Engine é US$ 14,95, não US$ 30.** A versão anterior
+>    comparava com o preço de tabela do plano Startup e concluía que a Vercel
+>    economizaria R$ 51/mês. Com o valor correto, **a Vercel passa a ser mais cara
+>    que a hospedagem atual**, e a recomendação muda (§4, §5).
 
 ---
 
 ## 1. Resumo executivo
 
-| Pergunta | Resposta | Custo adicional |
+| Pergunta | Resposta | Custo |
 |---|---|---|
-| **Onde hospedar os tours virtuais?** | Dentro do próprio repositório do site, publicados junto com ele. | **R$ 0** |
-| **Quanto custa subir o site novo fora do WordPress?** | Vercel Pro, US$ 20/mês — mais barato que a WP Engine de hoje. | **Economia de R$ 51/mês** |
+| **Onde hospedar os tours virtuais?** | ✅ Resolvido — publicados na raiz da WP Engine. | **R$ 0** |
+| **Quanto custa subir o site novo fora do WordPress?** | Cloudflare Workers, plano gratuito. | **Economia de R$ 76/mês** |
 
-**Com o tamanho confirmado em ~157 MB, hospedar os tours deixou de ser uma decisão de
-infraestrutura.** Cabe em qualquer cenário — inclusive na WP Engine atual — e não gera
-custo em nenhum deles. A única decisão real que sobra é a migração do site.
+**O site é pesado em mídia, e é isso que decide a hospedagem.** São 152 MB de assets e
+~5 MB por pageview medidos. Nesse perfil, o único custo que varia entre provedores é
+banda — e a Cloudflare é a única que não cobra por ela. Sai de R$ 76/mês (US$ 14,95)
+para **R$ 0**, com banda ilimitada em vez do teto de 75 GB de hoje.
+
+**Ressalva:** dois arquivos passam do limite de 25 MiB por arquivo da Cloudflare e
+precisam ser comprimidos ou movidos para o R2 (§4.4). É a mesma compressão de PDF que
+o documento já recomendava — ela resolve o bloqueio e a banda de uma vez.
 
 ---
 
@@ -70,9 +83,15 @@ Ou seja: não é um problema a resolver com o suporte da WP Engine, é um arquiv
 
 ---
 
-## 3. Pergunta 1 — Onde hospedar os tours
+## 3. Pergunta 1 — Onde hospedar os tours ✅ resolvido
 
-A ~157 MB, **todas as opções são viáveis e todas custam R$ 0**. A escolha passa a ser
+> **Status (12/ago):** os tours foram publicados na **raiz da WP Engine** e estão no ar,
+> por exemplo em `focalinc.com.br/tourvirtual/aereo_focalinc_galeria3massaca`.
+> Custo adicional **R$ 0**, como previsto. O restante desta seção fica como registro das
+> alternativas avaliadas — e volta a importar em §4.6, porque migrar o site sem migrar os
+> tours quebra essas URLs.
+
+A ~157 MB, **todas as opções eram viáveis e todas custavam R$ 0**. A escolha passou a ser
 operacional, não financeira.
 
 | Opção | Cabe? | Custo/mês | Observação |
@@ -142,103 +161,295 @@ a recomendação continua sendo §3.1.
 
 ---
 
-## 4. Pergunta 2 — O site novo na Vercel
+## 4. Pergunta 2 — Colocar o site novo no ar
 
-### 4.1 O que já está a favor
+### 4.1 O que o site é (medido no build)
 
-- O projeto usa `<img>` nativo, **não** `next/image`. Logo, **custo zero de Image
-  Optimization** — que costuma ser a fatura-surpresa da Vercel.
-- Assets já pré-dimensionados do WordPress (`public/wp/`, 152 MB em 264 arquivos).
-- Bem abaixo dos limites de deploy, com ou sem os tours.
+Números do `next build` de 12/ago, não estimativas:
 
-### 4.2 O plano
-
-**Vercel Pro — US$ 20/mês por assento**, incluindo:
-- 1 TB de Fast Data Transfer
-- 10 milhões de Edge Requests
-
-Excedente na região de São Paulo (gru1): **US$ 0,22/GB** e **US$ 3,20/milhão de requests**.
-
-> ⚠️ O plano Hobby (grátis) **não serve**: é restrito a uso pessoal/não-comercial.
-> Site de cliente exige Pro.
-
-### 4.3 Projeção por faixa de tráfego
-
-Estimando ~5 MB por pageview do site e ~15 MB por sessão de tour:
-
-| Pageviews/mês | Site | + 2.000 sessões de tour | Total | % do 1 TB | **Custo/mês** |
-|---|---|---|---|---|---|
-| 10.000 | 50 GB | 30 GB | 80 GB | 8% | **US$ 20 (R$ 102)** |
-| 25.000 | 125 GB | 30 GB | 155 GB | 15% | **US$ 20 (R$ 102)** |
-| 50.000 | 250 GB | 30 GB | 280 GB | 28% | **US$ 20 (R$ 102)** |
-| 100.000 | 500 GB | 30 GB | 530 GB | 53% | **US$ 20 (R$ 102)** |
-| 190.000 | 950 GB | 30 GB | ~1 TB | 100% | **US$ 20 (R$ 102)** |
-
-**Os tours cabem inteiros na folga do plano.** Até ~190 mil pageviews/mês o custo é fixo
-em US$ 20 — site e tours juntos.
-
-### 4.4 O ponto de atenção: os PDFs
-
-O folder do Artur 73 tem **33,5 MB** e há um vídeo de **32,4 MB**. São os maiores arquivos
-do projeto e o principal risco de consumir a franquia:
-
-| Downloads do folder | Transferência |
+| | |
 |---|---|
-| 1.000 | 33 GB |
-| 5.000 | 167 GB |
-| 30.000 | 1 TB (sozinho consome a franquia) |
+| Next.js / React | 16.2.9 / 19.2.4 |
+| Páginas | 16 estáticas + 1 rota dinâmica (`/api/lead`) |
+| HTML + JS + CSS de **todas** as páginas | **3,1 MB** |
+| Assets em `public/wp/` | **152 MB** em 264 arquivos |
 
-**Recomendação:** comprimir os PDFs. 33 MB para um folder é muito — dá para chegar em
-5–8 MB sem perda visível. É a otimização de maior impacto do projeto, e vale mais do que
-qualquer escolha de hospedagem discutida aqui.
+**O código é irrelevante para o custo; a mídia é tudo.** O site inteiro cabe em 3,1 MB —
+os outros 152 MB são fotos, vídeos e PDFs herdados do WordPress.
 
-### 4.5 Vercel Pro × WP Engine
+Dois pontos técnicos que já jogam a favor:
 
-| | WP Engine Startup | Vercel Pro |
+- Usa `<img>` nativo, **não** `next/image` → **custo zero de Image Optimization**,
+  que costuma ser a fatura-surpresa da Vercel.
+- O vídeo do hero em desktop é um **iframe do YouTube** → essa banda corre por conta do
+  YouTube, não da hospedagem. Só o mobile carrega mp4 local (2,6 MB).
+
+### 4.2 Quanto pesa um pageview
+
+Somando os assets que a home realmente referencia:
+
+| | Peso |
+|---|---|
+| Home **desktop** (11 imagens + shell; vídeo via YouTube) | **~4,4 MB** |
+| Home **mobile** (mesmas imagens + mp4 de 2,6 MB com `autoPlay`) | **~7,0 MB** |
+| Média usada nas projeções | **~5 MB/pageview** |
+
+Confirma a estimativa da versão anterior — agora medida. É um site **pesado**: 5 MB por
+pageview é ~5× o normal para um site institucional. Por isso banda é a única variável de
+custo que importa aqui.
+
+### 4.3 As opções, com o preço real de hoje na mesa
+
+Hoje a Focal paga **US$ 14,95/mês (R$ 76)** na WP Engine.
+
+| Opção | US$/mês | R$/mês | Banda | `/api/lead` | Veredito |
+|---|---|---|---|---|---|
+| **Cloudflare Workers (Free)** | **0** | **0** | **ilimitada** | 100k req/dia | ✅ **Recomendada** |
+| Cloudflare Workers (Paid) | 5 | 25 | ilimitada | 10M req/mês | Folga, se quiser |
+| Netlify (Free) | 0 | 0 | 100 GB | 125k invocações | Grátis, mas com teto |
+| **WP Engine hoje** | **14,95** | **76** | 75 GB | ✗ | Referência atual |
+| Vercel Pro | 20 | 102 | 1 TB | incluída | **+R$ 26/mês vs. hoje** |
+| Vercel Hobby | 0 | 0 | 100 GB | incluída | ❌ ToS proíbe uso comercial |
+| GitHub Pages | 0 | 0 | ~100 GB | ✗ | ❌ ToS proíbe uso comercial |
+
+Duas eliminações por contrato, não por preço:
+
+> **Vercel Hobby está fora.** A documentação é literal: *"the Hobby plan restricts users
+> to non-commercial, personal use only"*. Site de incorporadora exige Pro — US$ 20.
+>
+> **GitHub Pages está fora** como destino final. O ToS proíbe usar como *"free
+> web-hosting service to run your online business"*. Serve para a preview de hoje, não
+> para produção.
+
+**Por que a Cloudflare ganha:** ela não cobra banda. A documentação é explícita —
+*"requests to static assets are free and unlimited"* e *"no additional charges for data
+transfer (egress) or throughput"*. Num site de 5 MB/pageview, isso é a diferença entre
+ter um teto e não ter.
+
+E a Vercel, que a versão anterior recomendava, **passa a custar R$ 26/mês a mais que
+hoje** — não R$ 51 a menos. A conclusão original vinha do preço de tabela errado.
+
+### 4.4 ⚠️ O bloqueio: dois arquivos passam de 25 MiB
+
+A Cloudflare limita **25 MiB por arquivo** em assets estáticos (igual no Free e no Paid).
+Dois arquivos do projeto estouram:
+
+| Arquivo | Tamanho | Situação |
 |---|---|---|
-| Preço | US$ 30/mês (R$ 153) | **US$ 20/mês (R$ 102)** |
-| Visitas/mês | 25.000 | ilimitadas |
-| Banda/mês | 75 GB | **1 TB** (13×) |
-| Deploy | SFTP / plugin | Git push |
+| `4.-ANEXO-Folder.pdf` | 33,5 MB | ❌ acima do limite |
+| `Focal-Maio-2026-1.mp4` | 32,4 MB | ❌ acima do limite |
+| `07.-ANEXO-FOLDER.pdf` | 9,8 MB | ✅ ok |
+| Outros 261 arquivos | < 7 MB | ✅ ok |
 
-Migrar **economiza R$ 51/mês e multiplica a banda por 13**. Para quem roda tráfego pago,
-a folga vale mais que a economia.
+Duas saídas, e a primeira é a que o documento já recomendava por outro motivo:
+
+1. **Comprimir.** 33 MB para um folder em PDF é muito — dá para chegar em 5–8 MB sem
+   perda visível, e o vídeo de 32 MB reencodado fica bem abaixo de 25 MiB. Resolve o
+   bloqueio **e** a banda de uma vez.
+2. **Mover os dois para o Cloudflare R2**, servidos pelo mesmo domínio. Armazenamento e
+   egress gratuitos dentro da cota de 10 GB — o projeto inteiro usa 152 MB. Custo **R$ 0**.
+   É também o caminho que o ToS da Cloudflare sanciona explicitamente para arquivos
+   grandes: eles podem ser servidos desde que hospedados num serviço da própria
+   Cloudflare (R2, Stream, Images).
+
+A contagem de arquivos não é problema: 264, contra um limite de 20.000 no plano gratuito.
+
+### 4.5 Capacidade por faixa de tráfego
+
+A ~5 MB/pageview, quantos pageviews cada franquia comporta:
+
+| Hospedagem | Franquia | Pageviews/mês antes do teto |
+|---|---|---|
+| **WP Engine (hoje)** | 75 GB | **~15.000** |
+| Netlify Free | 100 GB | ~20.000 |
+| Vercel Pro | 1 TB | ~210.000 |
+| **Cloudflare** | — | **sem teto** |
+
+> 📌 **A franquia de hoje é mais apertada do que parece.** O plano promete 25.000 visitas,
+> mas a 5 MB/pageview os 75 GB acabam em ~15.000 — a banda estoura antes das visitas.
+> E agora divide com os tours. Vale conferir se já há excedente na fatura.
+
+O peso dos PDFs deixa isso pior. Um único arquivo pode consumir a franquia:
+
+| Downloads do folder de 33,5 MB | Transferência | % dos 75 GB de hoje |
+|---|---|---|
+| 500 | 17 GB | 22% |
+| 1.000 | 33 GB | **45%** |
+| 2.240 | 75 GB | **100%** |
+
+Uma campanha de mídia paga com 2.000 downloads de folder estoura a franquia sozinha.
+Na Cloudflare, esse cenário simplesmente não gera conta.
+
+### 4.6 O acoplamento que não existia antes: os tours
+
+Agora que os tours estão na WP Engine em `focalinc.com.br/tourvirtual/`, **migrar o site
+mexe neles**. Quando o DNS de `focalinc.com.br` apontar para outro provedor, essas URLs
+param de responder — a menos que os tours vão junto.
+
+| Caminho | Custo/mês | Observação |
+|---|---|---|
+| **Migrar site + tours para a Cloudflare** | **R$ 0** | Cancela a WP Engine. Recomendado |
+| Migrar o site, manter a WP Engine só para os tours | R$ 76 | Paga hospedagem inteira por uma pasta estática |
+| Migrar o site, tours num subdomínio na WP Engine | R$ 76 | Mesmo custo, e ainda muda a URL divulgada |
+
+Só o primeiro caminho realiza a economia. Os outros dois mantêm a fatura atual e ainda
+adicionam um provedor.
+
+**Antes de migrar os tours, contar os arquivos.** Tour krpano gera milhares de *tiles*.
+Se passar de 20.000 arquivos, eles vão para o R2 em vez dos assets estáticos do Workers —
+o R2 não tem limite de contagem, e continua R$ 0.
+
+### 4.7 O que quebra num export puramente estático
+
+Vale registrar, porque a preview do GitHub Pages hoje roda assim (`STATIC_EXPORT=1`) e
+já mostra as duas lacunas:
+
+- **`/api/lead` desaparece.** Confirmado no build: a rota não é gerada no export. O
+  `LeadForm` tem fallback para WhatsApp com a mensagem preenchida, então nenhum lead se
+  perde — mas o envio por formulário não funciona.
+- **Os 8 redirects de migração somem.** Eles só existem no modo servidor do
+  `next.config.ts`. As URLs antigas do WordPress (`/parcerias`, `/empreendimentos/:slug`,
+  `/portfolio/*`…) passariam a dar 404, com o custo de SEO correspondente.
+
+Na Cloudflare via `@opennextjs/cloudflare` (que suporta Next.js 16), **as duas coisas
+continuam funcionando** — a rota vira uma função e os redirects são preservados. É o
+motivo de não recomendar simplesmente jogar o export estático num host qualquer.
 
 ---
 
-## 5. Recomendação
+## 5. Com o tráfego real: 3.000 acessos/mês
 
-1. **Tours → dentro do repositório**, em `public/tourvirtual/{general,massaca}/`,
-   publicados junto com o site. Custo adicional **R$ 0**.
-   Se a contagem de arquivos passar de 15.000, mover para Cloudflare R2 (também R$ 0).
-2. **Site → Vercel Pro**, substituindo a WP Engine. **R$ 102/mês** contra R$ 153/mês.
-3. **Comprimir os PDFs pesados** — maior ganho isolado de banda do projeto.
-4. Remover `tour_testingserver.exe` e `tour_testingserver_macos` antes de publicar.
+O Google Analytics dos últimos 30 dias mostra **~3.000 acessos**, dos quais ~500–600 de
+tráfego pago. Isso muda a escala do problema — **não há problema de banda a resolver**:
 
-**Resultado: os tours saem de graça, e o site fica R$ 51/mês mais barato do que hoje.**
+| Cenário | Peso/pageview | Banda/mês | % dos 75 GB de hoje |
+|---|---|---|---|
+| Como está hoje | ~5 MB | **15 GB** | 20% |
+| Depois de otimizar mídia (§7) | ~1 MB | **3 GB** | 4% |
 
-### Se optar por manter o WordPress na WP Engine
+A 3.000 acessos/mês, **qualquer** opção da tabela §4.3 comporta o site com folga enorme.
+A escolha deixa de ser sobre capacidade e passa a ser sobre **preço e sobre o que a
+plataforma permite fazer** — deploy por git, testes A/B, previews.
 
-Também funciona — sobe por SFTP conforme o tutorial da Gyro, cria
-`/tourvirtual/general/` e descompacta. Os 157 MB cabem nos 10 GB. Só vale monitorar a
-banda de 75 GB, que passa a ser dividida entre site e tours (§3.3).
+Nessa faixa de tráfego, a Cloudflare no plano gratuito não é só a mais barata: é
+sobra de capacidade por R$ 0.
 
 ---
 
-## 6. O que falta confirmar
+## 6. O modelo para a Vitamina assumir a hospedagem
+
+A intenção é o cliente **cancelar a WP Engine** e a hospedagem passar a estar embutida no
+contrato mensal da Vitamina. A pergunta que importa: **quanto isso custa para a agência?**
+
+### 6.1 Custo real de hospedar a Focal na conta da Vitamina
+
+| Item | Serviço | Custo/mês |
+|---|---|---|
+| Site (16 páginas + `/api/lead`) | Cloudflare Workers, plano Free | **US$ 0** |
+| Tours virtuais (~157 MB) | Cloudflare R2 ou Workers assets | **US$ 0** (cota de 10 GB) |
+| Vídeos | Cloudflare Stream | **~US$ 0,60** de entrega |
+| **Total** | | **≈ R$ 0–3/mês** |
+
+**Não há custo por cliente.** Uma conta Cloudflare hospeda vários sites no plano
+gratuito — cada site é um Worker, e o limite é de 100 Workers por conta. Não é preciso
+abrir conta separada para a Focal, nem pagar assento por projeto.
+
+> **É por isso que a Cloudflare vence a Vercel neste caso.** Na Vercel, qualquer site
+> comercial exige o plano Pro (US$ 20/mês) — o Hobby é proibido por contrato. Seriam
+> R$ 102/mês saindo do bolso da agência para hospedar um site de 3.000 acessos.
+
+### 6.2 O que muda para o cliente
+
+Do lado da Focal, a única linha que muda na parte de infraestrutura é a **saída da
+mensalidade da WP Engine** — US$ 14,95, ou ~R$ 85–90 na fatura com IOF e spread.
+
+> As condições comerciais da migração e da mensalidade da Vitamina ficam **fora deste
+> repositório**, por serem material da agência: este documento pode acabar transferido
+> junto com o código se o contrato terminar (§6.3).
+
+### 6.3 Quem fica com o quê (e como é a saída)
+
+Para a relação ficar limpa se o cliente sair um dia:
+
+| Ativo | Onde deve ficar | Por quê |
+|---|---|---|
+| **Domínio `focalinc.com.br`** | **No nome da Focal**, no Registro.br | Inegociável. É o ativo do cliente |
+| Repositório do site | GitHub da Vitamina | Transferível num clique se ele sair |
+| Conta Cloudflare | Vitamina | Custo zero; ele reaponta o DNS quando quiser |
+| Contas de anúncio / Analytics | No nome da Focal | Mesma lógica do domínio |
+
+Com o domínio no nome do cliente, a saída é: transferir o repositório e apontar o DNS.
+Sem refém, sem discussão — e isso é um bom argumento a favor na conversa, não contra.
+
+---
+
+## 7. O que fazer com a mídia pesada
+
+Três ações, e as três têm efeito duplo — resolvem limite técnico **e** melhoram
+velocidade, que é o que sustenta a proposta comercial:
+
+| Ação | Situação hoje | Depois | Ganho |
+|---|---|---|---|
+| **Vídeos → Cloudflare Stream** | 3 arquivos, 41 MB, um deles acima do limite de 25 MiB | 0 MB no repositório | Resolve o bloqueio, tira o branding do YouTube, melhora o LCP |
+| **Comprimir PDFs** | 4 arquivos, 50,7 MB (maior: 33,5 MB) | ~10 MB no total | Resolve o segundo bloqueio de 25 MiB |
+| **Converter imagens para WebP/AVIF** | 257 arquivos, 59 MB | ~10–15 MB | Home de ~4,4 MB → **menos de 1 MB** |
+
+**Sobre o Stream:** a Vitamina já usa o produto, então os ~5 minutos de vídeo da Focal
+entram na alocação existente. Entrega custa US$ 1 por 1.000 minutos — a 3.000 acessos/mês
+dá **centavos**. Além do custo, troca o iframe do YouTube (pesado, com marca e vídeos
+sugeridos no fim) por player limpo no domínio da Focal.
+
+**A conversão de imagens é o maior ganho isolado.** Sair de ~5 MB para menos de 1 MB por
+pageview é uma melhora de velocidade que aparece no Core Web Vitals, no Quality Score do
+Google Ads e na taxa de conversão — exatamente o que justifica a migração para o cliente.
+
+---
+
+## 8. Ordem da migração
+
+> 🚨 **Os tours estão na WP Engine.** Cancelar a hospedagem antes de movê-los derruba
+> `focalinc.com.br/tourvirtual/...`. A ordem abaixo não é opcional.
+
+1. **Otimizar a mídia** (§7) — vídeos para o Stream, PDFs comprimidos, imagens em WebP.
+2. **Mover os tours** para R2/Workers e validar as URLs num domínio de teste.
+   Antes disso, contar os arquivos: acima de 20.000, vão obrigatoriamente para o R2.
+3. **Publicar o site** na Cloudflare, ainda em domínio de teste.
+4. **Conferir os 8 redirects** das URLs antigas do WordPress e ligar o `/api/lead` ao
+   destino real de leads (hoje é um `TODO` no código).
+5. **Backup final do WordPress** — exportar conteúdo e banco antes de qualquer corte.
+6. **Apontar o DNS.** ⚠️ Preservar os registros MX: se o e-mail `@focalinc.com.br`
+   depender do DNS atual, trocar o apontamento sem cuidado derruba o e-mail da empresa.
+7. **Monitorar 48–72h** com o WP Engine ainda ativo, como rollback.
+8. **Só então cancelar a WP Engine.**
+
+Os passos 5–8 são o momento de risco real da migração; o resto é reversível.
+
+---
+
+## 9. O que falta confirmar
 
 | # | O que confirmar | Por que importa | Como levantar |
 |---|---|---|---|
-| 1 | **Contagem de arquivos do tour descompactado** | Decide entre §3.1 (repositório) e §3.2 (R2). Limite: 15.000 | `find . -type f \| wc -l` |
-| 2 | **Tráfego atual do focalinc.com.br** | Define em que linha da tabela 4.3 o site cai | Google Analytics ou painel da WP Engine |
-| 3 | **Banda consumida hoje na WP Engine** | Verificar se já há excedente (§3.3) | Painel da WP Engine |
+| 1 | **Onde está o DNS e se há MX ativo** | Risco mais alto da migração: derrubar o e-mail `@focalinc.com.br` (§8, passo 6) | Registro.br + `dig focalinc.com.br MX` |
+| 2 | **Contagem de arquivos dos tours** | Acima de 20.000 vão para o R2, não para os assets do Workers | `find . -type f \| wc -l` no servidor |
+| 3 | **Destino oficial dos leads** | `/api/lead` hoje é um `TODO` no código — precisa de CRM ou e-mail antes do go-live | Definir com a Focal |
+| 4 | **Titularidade do domínio** | Precisa estar no nome da Focal para a saída ser limpa (§6.3) | Registro.br |
+| 5 | **Duração total dos vídeos** | Dimensiona a alocação do Stream | Somar os 3 arquivos em `public/wp/` |
 
-**Premissas usadas:**
+**Premissas e fontes:**
 
-- ~157 MB por tour (confirmado). Se os dois tours somarem ~314 MB, nada muda — segue
-  folgado em todos os cenários.
-- ~5 MB por pageview do site (estimativa a partir do peso real dos assets em `public/wp/`).
-- ~15 MB e ~400 *tiles* por sessão de tour.
-- Câmbio US$ 1 = R$ 5,09 (11/ago/2026). Não inclui IOF nem impostos sobre o cartão.
-- Preços de lista consultados em 11/ago/2026 nas páginas oficiais de Vercel, Cloudflare
-  e WP Engine.
+- **Medido no build de 12/ago:** 16 páginas, 3,1 MB de HTML+JS+CSS, 152 MB de assets em
+  264 arquivos (257 imagens = 59 MB, 4 PDFs = 50,7 MB, 3 vídeos = 41,1 MB).
+- **Medido:** home desktop ~4,4 MB, home mobile ~7,0 MB → média de ~5 MB/pageview.
+- **Informado pelo cliente:** mensalidade de US$ 14,95 na WP Engine; ~3.000 acessos nos
+  últimos 30 dias, ~500–600 de tráfego pago.
+- ~157 MB por tour (confirmado); os dois somam ~314 MB, folgado em todos os cenários.
+- Câmbio US$ 1 = R$ 5,09 (11/ago/2026). Não inclui IOF nem spread do cartão — na prática
+  os US$ 14,95 chegam mais perto de R$ 85–90 na fatura.
+- Preços de lista consultados em 11–12/ago/2026 nas páginas oficiais de
+  [Cloudflare Workers](https://developers.cloudflare.com/workers/platform/pricing/),
+  [R2](https://developers.cloudflare.com/r2/pricing/),
+  [Stream](https://developers.cloudflare.com/stream/pricing/),
+  [Vercel](https://vercel.com/docs/plans) e WP Engine.
+- Limites de assets estáticos da Cloudflare (25 MiB/arquivo, 20.000 arquivos no Free)
+  conferidos em [Workers Platform Limits](https://developers.cloudflare.com/workers/platform/limits/).

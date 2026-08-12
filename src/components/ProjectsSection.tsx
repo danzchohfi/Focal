@@ -1,46 +1,80 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Carousel from "./Carousel";
 import ProjectCard from "./ProjectCard";
 import Reveal from "./Reveal";
 import { filtros, projetos } from "@/data/projetos";
 
-// Vitrine da home: título, filtros em pill e carrossel dos 5 empreendimentos.
+// Vitrine da home: título, abas de filtro e os 5 empreendimentos, como no
+// site atual (Uncode tab-switch): trilho escuro em pílula com o cursor branco
+// deslizando até a aba ativa — e a aba troca ao passar o mouse (tab-hover).
 export default function ProjectsSection() {
   const [filtro, setFiltro] = useState("todos");
   const lista =
     filtro === "todos" ? projetos : projetos.filter((p) => p.categorias.includes(filtro));
 
+  const trackRef = useRef<HTMLDivElement>(null);
+  const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [thumb, setThumb] = useState<{ left: number; width: number } | null>(null);
+
+  const measure = useCallback(() => {
+    const btn = btnRefs.current[filtro];
+    if (btn) setThumb({ left: btn.offsetLeft, width: btn.offsetWidth });
+  }, [filtro]);
+
+  useEffect(() => {
+    measure();
+    const track = trackRef.current;
+    if (!track) return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(track);
+    return () => ro.disconnect();
+  }, [measure]);
+
   return (
-    <section id="empreendimentos" className="bg-white py-24 md:py-32">
+    <section id="empreendimentos" className="border-t border-[#f4f4f4] bg-white py-[72px]">
       <Reveal className="px-6 text-center">
         <h1 className="din-book h-hero text-ink-2">Empreendimentos</h1>
       </Reveal>
 
-      {/* Filtros */}
-      <Reveal className="mt-14 flex justify-center px-4" delay={100}>
-        <div className="flex max-w-full flex-wrap justify-center gap-1 rounded-full bg-off p-2 shadow-sm">
-          {filtros.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              aria-pressed={filtro === f.id}
-              onClick={() => setFiltro(f.id)}
-              className={`rounded-full px-6 py-2.5 text-[15px] transition-[color,background-color,box-shadow] duration-250 ${
-                filtro === f.id
-                  ? "bg-white text-black shadow"
-                  : "text-black/60 hover:text-black"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+      {/* Abas de filtro — trilho #222 com cursor branco deslizante */}
+      <Reveal className="mt-12 px-4" delay={100}>
+        <div className="flex justify-center">
+          <div className="max-w-full overflow-x-auto rounded-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div ref={trackRef} className="relative flex w-max rounded-full bg-ink-2 p-1">
+              {thumb && (
+                <span
+                  aria-hidden
+                  className="absolute bottom-1 top-1 rounded-full bg-white transition-[left,width] duration-200 ease-in-out"
+                  style={{ left: thumb.left, width: thumb.width }}
+                />
+              )}
+              {filtros.map((f) => (
+                <button
+                  key={f.id}
+                  ref={(el) => {
+                    btnRefs.current[f.id] = el;
+                  }}
+                  type="button"
+                  aria-pressed={filtro === f.id}
+                  onClick={() => setFiltro(f.id)}
+                  onMouseEnter={() => setFiltro(f.id)}
+                  onFocus={() => setFiltro(f.id)}
+                  className={`relative z-10 whitespace-nowrap rounded-full px-[23px] py-2.5 text-[16px] transition-colors duration-200 md:text-[17px] ${
+                    filtro === f.id ? "text-black" : "text-white/85 hover:text-white"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </Reveal>
 
-      {/* Cards — carrossel fluido de ponta a ponta, como no site atual
-          (cards de ~245px a 1440 e ~341px a 1920, gap de 36px) */}
+      {/* Cards — 5 de ponta a ponta no desktop, carrossel no mobile, como no
+          site atual (cards de ~245px a 1440 e ~341px a 1920, gap de 36px) */}
       <div className="mt-12 w-full px-[18px]">
         {lista.length > 0 ? (
           <div key={filtro} className="contents">

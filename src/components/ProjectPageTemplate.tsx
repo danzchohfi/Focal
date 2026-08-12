@@ -1,7 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
 import DestaqueIcon from "./DestaqueIcon";
 import LeadForm from "./LeadForm";
+import Lightbox, { type LightboxItem } from "./Lightbox";
 import LpHeader from "./LpHeader";
 import MapEmbed from "./MapEmbed";
 import ObraCarousel from "./ObraCarousel";
@@ -48,7 +52,21 @@ function DownloadIcon() {
 }
 
 // Template das páginas de empreendimento — réplica da LP do site atual.
+// Como no original (iLightBox), as imagens internas e as plantas abrem em
+// modal; a galeria "Conheça o..." cuida do próprio lightbox (vídeo incluso).
 export default function ProjectPageTemplate({ projeto: p }: { projeto: Projeto }) {
+  const [lightbox, setLightbox] = useState<{ items: LightboxItem[]; index: number } | null>(null);
+
+  const stripItems: LightboxItem[] = p.strip.map((f, i) => ({
+    src: f,
+    alt: `${p.nome} — imagem ${i + 1}`,
+  }));
+  const plantaItems: LightboxItem[] = p.plantas.itens.map((pl) => ({
+    src: pl.img,
+    cap: pl.cap,
+    alt: `${p.nome} — planta ${pl.cap}`,
+  }));
+
   return (
     <>
       <LpHeader contexto={p.nome} />
@@ -86,7 +104,13 @@ export default function ProjectPageTemplate({ projeto: p }: { projeto: Projeto }
           <div className="mx-auto max-w-[1400px] px-4">
             <Carousel itemClassName="w-[88%] p-2 sm:w-[55%] md:w-[44%]">
               {p.strip.map((f, i) => (
-                <div key={f} className="h-[300px] overflow-hidden rounded-lg md:h-[420px]">
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setLightbox({ items: stripItems, index: i })}
+                  aria-label={`Ampliar imagem ${i + 1} — ${p.nome}`}
+                  className="block h-[300px] w-full cursor-zoom-in overflow-hidden rounded-lg md:h-[420px]"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={asset(f)}
@@ -94,7 +118,7 @@ export default function ProjectPageTemplate({ projeto: p }: { projeto: Projeto }
                     loading={i > 1 ? "lazy" : undefined}
                     className="h-full w-full object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:scale-105"
                   />
-                </div>
+                </button>
               ))}
             </Carousel>
           </div>
@@ -173,9 +197,14 @@ export default function ProjectPageTemplate({ projeto: p }: { projeto: Projeto }
             </Reveal>
             <div className="mt-16">
               <Carousel itemClassName="w-[88%] p-3 sm:w-[50%] md:w-[33.33%]">
-                {p.plantas.itens.map((pl) => (
+                {p.plantas.itens.map((pl, i) => (
                   <figure key={pl.img} className="flex h-full flex-col">
-                    <div className="flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.06),0_16px_40px_-16px_rgba(0,0,0,.28)]">
+                    <button
+                      type="button"
+                      onClick={() => setLightbox({ items: plantaItems, index: i })}
+                      aria-label={`Ampliar planta ${pl.cap}`}
+                      className="flex aspect-square w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-lg bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.06),0_16px_40px_-16px_rgba(0,0,0,.28)]"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={asset(pl.img)}
@@ -183,7 +212,7 @@ export default function ProjectPageTemplate({ projeto: p }: { projeto: Projeto }
                         loading="lazy"
                         className="max-h-full max-w-full object-contain"
                       />
-                    </div>
+                    </button>
                     <figcaption className="mt-4 text-center text-[15px] text-ink-2">{pl.cap}</figcaption>
                   </figure>
                 ))}
@@ -263,7 +292,7 @@ export default function ProjectPageTemplate({ projeto: p }: { projeto: Projeto }
               <h2 className="din h-section text-ink-2">Localização</h2>
             </Reveal>
             <div className="mx-auto mt-14 max-w-[1100px]">
-              <MapEmbed query={p.mapa} />
+              <MapEmbed query={p.mapa} coord={p.mapaCoord} />
             </div>
           </div>
         </section>
@@ -298,6 +327,15 @@ export default function ProjectPageTemplate({ projeto: p }: { projeto: Projeto }
         </section>
       </main>
       <SiteFooter />
+
+      {lightbox && (
+        <Lightbox
+          items={lightbox.items}
+          index={lightbox.index}
+          onClose={() => setLightbox(null)}
+          onNavigate={(i) => setLightbox({ ...lightbox, index: i })}
+        />
+      )}
     </>
   );
 }

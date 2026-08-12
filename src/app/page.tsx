@@ -9,7 +9,7 @@ import { asset } from "@/lib/asset";
 export default function Home() {
   return (
     <>
-      <SiteHeader tone="claro" />
+      <SiteHeader tone="claro" heroMenu />
       <main>
         <HomeHero />
         <ProjectsSection />

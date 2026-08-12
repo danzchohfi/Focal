@@ -459,7 +459,7 @@ export default function ArturConversionLP() {
               Agendar visita
             </WaButton>
           </Reveal>
-          <MapEmbed query={p.mapa} />
+          <MapEmbed query={p.mapa} coord={p.mapaCoord} />
         </div>
       </section>
 

@@ -38,6 +38,8 @@ export type Projeto = {
   obra: { titulo: string; fotos: string[]; video?: string; legenda?: string };
   destaques: { icone: string; titulo: string; texto: string }[];
   mapa: string;
+  /** Posição do pin no mapa (mesmas coordenadas do WP Go Maps do site atual) */
+  mapaCoord: { lat: number; lng: number };
   faleLinha: string;
   legal?: string;
 };
@@ -108,6 +110,7 @@ export const projetos: Projeto[] = [
       { icone: "height", titulo: "Pé direito alto", texto: "Apartamentos com pé direito > 3m." },
     ],
     mapa: "Alameda Jaúnas, 95 - Moema, São Paulo - SP",
+    mapaCoord: { lat: -23.5985252, lng: -46.6623678 },
     faleLinha: "Alameda Jaúnas, 95 - Moema, SP",
   },
   {
@@ -195,6 +198,7 @@ export const projetos: Projeto[] = [
       { icone: "shield", titulo: "Guarita blindada", texto: "Guarita blindada e gerador para áreas comuns" },
     ],
     mapa: "Rua Artur de Azevedo, 73 - Pinheiros, São Paulo - SP",
+    mapaCoord: { lat: -23.5578801, lng: -46.6735331 },
     faleLinha: "Rua Artur Azevedo, 73 - Pinheiros, SP",
     legal:
       "INCORPORADORA RESPONSÁVEL: JARDIM FGS SPE LTDA. O EMPREENDIMENTO SOMENTE SERÁ COMERCIALIZADO APÓS O REGISTRO DA INCORPORAÇÃO, NOS TERMOS DA LEI Nº 4.591/64. MATERIAL PRELIMINAR SUJEITO A ALTERAÇÕES. IMAGENS MERAMENTE ILUSTRATIVAS. ACABAMENTOS, QUANTIDADE DE MOBILIÁRIO E EQUIPAMENTOS SERÃO ENTREGUES CONFORME MEMORIAL DESCRITIVO DO EMPREENDIMENTO E CONDIÇÕES DO COMPROMISSO DE COMPRA E VENDA. PERSPECTIVAS ARTÍSTICAS DA VEGETAÇÃO COM PORTE ADULTO, QUE SERÁ ATINGIDO APÓS A ENTREGA DO EMPREENDIMENTO E DE ACORDO COM O PROJETO DE PAISAGISMO. INTERMEDIAÇÃO: FOCAL VENDAS LTDA. – AV. BRIGADEIRO FARIA LIMA, 1979 – 1ª ANDAR – JARDIM PAULISTANO – SÃO PAULO-SP – TEL (11) 3136-0142 – CRECI/SP 36385-J E LPS SÃO PAULO – CONSULTORIA DE IMÓVEIS LTDA. – RUA ESTADOS UNIDOS, 1971 – JARDIM AMÉRICA – TEL (11) 3067-0000 – WWW.LOPES.COM.BR – CRECI/SP 24073-J. (*) OS APARTAMENTOS RESIDENCIAIS POSSUEM ÁREA PRIVATIVA DE 81M² A 88M².",
@@ -260,6 +264,7 @@ export const projetos: Projeto[] = [
       { icone: "pet", titulo: "Espaço pet", texto: "Espaço pet friendly." },
     ],
     mapa: "Rua Mourato Coelho, 111 - Pinheiros, São Paulo - SP",
+    mapaCoord: { lat: -23.5659311, lng: -46.6860419 },
     faleLinha: "Rua Mourato Coelho, 111 - Pinheiros, SP",
   },
   {
@@ -319,6 +324,7 @@ export const projetos: Projeto[] = [
       { icone: "sauna", titulo: "Sauna", texto: "Sauna." },
     ],
     mapa: "Rua Padre Carvalho, 730 - Pinheiros, São Paulo - SP",
+    mapaCoord: { lat: -23.5664343, lng: -46.6965934 },
     faleLinha: "Rua Padre Carvalho, 730 - Pinheiros, SP",
   },
   {
@@ -382,6 +388,7 @@ export const projetos: Projeto[] = [
       { icone: "pool", titulo: "Piscina", texto: "Piscina com prainha infantil." },
     ],
     mapa: "Rua Raul Saddi, 88 - Butantã, São Paulo - SP",
+    mapaCoord: { lat: -23.569292, lng: -46.7128795 },
     faleLinha: "Rua Raul Saddi, 88 - Butantã, SP",
   },
 ];

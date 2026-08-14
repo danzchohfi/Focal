@@ -5,6 +5,7 @@ import Link from "next/link";
 import Logo from "./Logo";
 import MapEmbed from "./MapEmbed";
 import EscalaAltura from "./lpc/EscalaAltura";
+import ObraScroll from "./lpc/ObraScroll";
 import ParticleField from "./lpc/ParticleField";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
@@ -678,11 +679,14 @@ export default function ArturLpC() {
         </div>
       </section>
 
-      {/* ─────────── Obra ─────────── */}
+      {/* ─────────── Obra — capítulos sobre o vídeo ─────────── */}
+      <ObraScroll />
+
+      {/* ─────────── Obra — status por etapa ─────────── */}
       <section className="border-t border-white/10 py-24 md:py-32">
         <div className="mx-auto max-w-[1240px] px-5 md:px-10">
           <div data-reveal className="max-w-[46ch]">
-            <p className="kicker text-verde">A obra</p>
+            <p className="kicker text-verde">Avanço por etapa</p>
             <h2 className="din mt-4 text-[clamp(32px,4.2vw,56px)] leading-[1.06] tracking-[-0.015em]">
               Fundação e estrutura, 100% concluídas
             </h2>

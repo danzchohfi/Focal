@@ -128,6 +128,11 @@ export default function ObraScroll() {
         );
         linha.to(nums[i], { opacity: 1, duration: 0.1 }, i - 0.02);
       }
+      // O HTML chega do servidor com os percentuais reais (estado sem JS);
+      // com o timeline no comando, os contadores partem do zero.
+      pcts.forEach((el) => {
+        el.textContent = "0";
+      });
       linha.progress(0);
       tl = linha;
     })();

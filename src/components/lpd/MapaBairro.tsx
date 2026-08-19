@@ -31,7 +31,14 @@ function Pin({ x, y, label, ancora = "esq" }: { x: number; y: number; label: str
   );
 }
 
-export default function MapaBairro({ className = "" }: { className?: string }) {
+export default function MapaBairro({
+  className = "",
+  children,
+}: {
+  className?: string;
+  /** Pins dinâmicos (ex.: BairroExplorer). Quando presentes, substituem os estáticos. */
+  children?: React.ReactNode;
+}) {
   return (
     <svg
       viewBox="0 0 760 560"
@@ -83,13 +90,17 @@ export default function MapaBairro({ className = "" }: { className?: string }) {
         <path d="M86 300 L120 560" />
       </g>
 
-      {/* pins */}
-      <Pin x={700} y={120} label="IMS" ancora="dir" />
-      <Pin x={150} y={172} label="Metrô Clínicas" />
-      <Pin x={300} y={228} label="Hospital das Clínicas FMUSP" />
-      <Pin x={104} y={402} label="Artur 73" />
-      <Pin x={392} y={412} label="Metrô Oscar Freire" />
-      <Pin x={640} y={470} label="Shops Jardins" ancora="dir" />
+      {/* pins: dinâmicos quando fornecidos; senão, o conjunto estático original */}
+      {children ?? (
+        <>
+          <Pin x={700} y={120} label="IMS" ancora="dir" />
+          <Pin x={150} y={172} label="Metrô Clínicas" />
+          <Pin x={300} y={228} label="Hospital das Clínicas FMUSP" />
+          <Pin x={104} y={402} label="Artur 73" />
+          <Pin x={392} y={412} label="Metrô Oscar Freire" />
+          <Pin x={640} y={470} label="Shops Jardins" ancora="dir" />
+        </>
+      )}
 
       {/* monograma */}
       <text x="36" y="530" fill={PINHO} fontSize="34" fontWeight="600" letterSpacing="-0.02em">

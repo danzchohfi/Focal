@@ -6,7 +6,8 @@ import Logo from "./Logo";
 import MapEmbed from "./MapEmbed";
 import EscalaAltura from "./lpc/EscalaAltura";
 import IconeD, { type IconeDNome } from "./lpd/IconeD";
-import MapaBairro from "./lpd/MapaBairro";
+import BairroExplorer from "./lpd/BairroExplorer";
+import CartoesMorar from "./lpd/CartoesMorar";
 import ScrollFilm from "./lpd/ScrollFilm";
 import TowerLines from "./lpd/TowerLines";
 import { asset } from "@/lib/asset";
@@ -197,34 +198,6 @@ function FormRapido() {
 }
 
 /* ──────────────────────────  Conteúdo  ────────────────────────── */
-
-const vizinhanca = [
-  {
-    titulo: "Lazer",
-    texto: "Ruas caminháveis, trechos arborizados, vida fluindo.",
-    lugares: ["Trechos arborizados do bairro", "Rua sem saída na porta de casa"],
-  },
-  {
-    titulo: "Arte & Design",
-    texto: "Galerias, lojas de mobiliário e moda autoral.",
-    lugares: ["ETEL", "MICASA", "Galeria Vermelho", "Almeida & Dale"],
-  },
-  {
-    titulo: "Gastronomia",
-    texto: "Bares e restaurantes que definem o repertório da cidade.",
-    lugares: ["Oscar Freire e entorno imediato"],
-  },
-  {
-    titulo: "Cultura",
-    texto: "Sesc Pinheiros, MASP e IMS a uma caminhada de distância.",
-    lugares: ["MASP", "Sesc Pinheiros", "IMS Paulista", "MIS", "Unibes Cultural"],
-  },
-  {
-    titulo: "Trabalho",
-    texto: "Proximidade ao metrô e à Paulista, o maior eixo corporativo do país.",
-    lugares: ["Metrô Oscar Freire a 5 min", "Paulista a 15 min a pé"],
-  },
-];
 
 /* ───────────────────────────  Página  ─────────────────────────── */
 
@@ -478,25 +451,12 @@ export default function ArturLpD() {
             </p>
           </div>
 
-          <div className="mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-3 md:gap-6 md:overflow-visible xl:grid-cols-5">
-            {vizinhanca.map((v) => (
-              <article
-                key={v.titulo}
-                className="w-[72vw] max-w-[300px] shrink-0 snap-start rounded-lg bg-white/55 p-6 md:w-auto md:max-w-none"
-              >
-                <h3 className="din text-[20px]">{v.titulo}</h3>
-                <p className="mt-3 min-h-[4.2em] text-[14px] leading-[1.6] opacity-85">{v.texto}</p>
-                <ul className="mt-4 space-y-1.5 border-t pt-4 text-[12.5px] uppercase tracking-[0.08em] opacity-70" style={{ borderColor: "rgba(47,93,72,.2)" }}>
-                  {v.lugares.map((l) => (
-                    <li key={l}>{l}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+          <div data-reveal className="mt-12">
+            <BairroExplorer />
           </div>
 
-          <div data-reveal className="mt-16 overflow-hidden rounded-lg">
-            <MapaBairro />
+          <div className="mt-20">
+            <CartoesMorar />
           </div>
 
           <div

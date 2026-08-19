@@ -5,6 +5,7 @@ import Link from "next/link";
 import Logo from "./Logo";
 import MapEmbed from "./MapEmbed";
 import EscalaAltura from "./lpc/EscalaAltura";
+import ObraScroll from "./lpc/ObraScroll";
 import ParticleField from "./lpc/ParticleField";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
@@ -502,6 +503,76 @@ export default function ArturLpC() {
         </div>
       </section>
 
+      {/* ─────────── Diferenciais em trilho horizontal ─────────── */}
+      <section data-trilho className="relative overflow-hidden border-t border-white/10 py-20 md:min-h-[100svh] md:py-0">
+        <div className="mx-auto max-w-[1240px] px-5 md:px-10 md:pt-24">
+          <p className="kicker text-verde">Por que o Artur 73</p>
+        </div>
+
+        <div className="mt-10 md:flex md:min-h-[62svh] md:items-center">
+          <div
+            data-pista
+            className="snap-track gap-5 px-5 md:flex md:gap-8 md:overflow-visible md:px-10"
+          >
+            {diferenciais.map((d) => (
+              <article
+                key={d.n}
+                className="w-[78vw] max-w-[420px] shrink-0 md:w-[38vw] md:max-w-[520px]"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={asset(d.img)}
+                    alt={d.titulo}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.04]"
+                  />
+                  <span className="din absolute left-4 top-4 text-[13px] tracking-[0.2em] text-white/70">
+                    {d.n}
+                  </span>
+                </div>
+                <h3 className="din mt-6 text-[26px] leading-tight md:text-[32px]">{d.titulo}</h3>
+                <p className="mt-3 max-w-[42ch] text-[15px] leading-[1.7] text-white/65">{d.texto}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────── Obra — capítulos sobre o vídeo ─────────── */}
+      <ObraScroll />
+
+      {/* ─────────── Obra — status por etapa (viewport inteira) ─────────── */}
+      <section className="flex min-h-[100svh] items-center border-t border-white/10 py-24 md:py-32">
+        <div className="mx-auto w-full max-w-[1240px] px-5 md:px-10">
+          <div data-reveal className="max-w-[46ch]">
+            <p className="kicker text-verde">Avanço por etapa</p>
+            <h2 className="din mt-4 text-[clamp(32px,4.2vw,56px)] leading-[1.06] tracking-[-0.015em]">
+              Fundação e estrutura, 100% concluídas
+            </h2>
+            <p className="mt-6 text-[16px] leading-[1.75] text-white/65">
+              Entrega prevista para setembro de 2026. Acompanhe o avanço real de cada etapa.
+            </p>
+          </div>
+
+          <div className="mt-14 space-y-7">
+            {p.status.map((s) => (
+              <div key={s.label}>
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="din text-[16px] text-white/80 md:text-[18px]">{s.label}</span>
+                  <span className="din text-[22px] text-verde [font-variant-numeric:tabular-nums] md:text-[26px]">
+                    {s.valor}%
+                  </span>
+                </div>
+                <div className="mt-3 h-px w-full bg-white/12">
+                  <div data-barra={s.valor} className="h-full origin-left bg-verde" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─────────── Cena assinatura: a altura ─────────── */}
       <section data-altura className="relative border-t border-white/10 py-24 md:py-36">
         <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-8 px-5 md:grid-cols-[1fr_1.05fr] md:gap-14 md:px-10">
@@ -544,42 +615,6 @@ export default function ArturLpC() {
           {/* Diagrama de escala — desenhado, não fotografado (ver EscalaAltura) */}
           <div data-escala className="mx-auto w-full max-w-[420px] md:max-w-[460px]">
             <EscalaAltura />
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── Diferenciais em trilho horizontal ─────────── */}
-      <section data-trilho className="relative overflow-hidden border-t border-white/10 py-20 md:min-h-[100svh] md:py-0">
-        <div className="mx-auto max-w-[1240px] px-5 md:px-10 md:pt-24">
-          <p className="kicker text-verde">Por que o Artur 73</p>
-        </div>
-
-        <div className="mt-10 md:flex md:min-h-[62svh] md:items-center">
-          <div
-            data-pista
-            className="snap-track gap-5 px-5 md:flex md:gap-8 md:overflow-visible md:px-10"
-          >
-            {diferenciais.map((d) => (
-              <article
-                key={d.n}
-                className="w-[78vw] max-w-[420px] shrink-0 md:w-[38vw] md:max-w-[520px]"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={asset(d.img)}
-                    alt={d.titulo}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.04]"
-                  />
-                  <span className="din absolute left-4 top-4 text-[13px] tracking-[0.2em] text-white/70">
-                    {d.n}
-                  </span>
-                </div>
-                <h3 className="din mt-6 text-[26px] leading-tight md:text-[32px]">{d.titulo}</h3>
-                <p className="mt-3 max-w-[42ch] text-[15px] leading-[1.7] text-white/65">{d.texto}</p>
-              </article>
-            ))}
           </div>
         </div>
       </section>
@@ -674,37 +709,6 @@ export default function ArturLpC() {
               </div>
               <p className="din mt-4 text-center text-[15px] text-ink-2">{planta.cap}</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── Obra ─────────── */}
-      <section className="border-t border-white/10 py-24 md:py-32">
-        <div className="mx-auto max-w-[1240px] px-5 md:px-10">
-          <div data-reveal className="max-w-[46ch]">
-            <p className="kicker text-verde">A obra</p>
-            <h2 className="din mt-4 text-[clamp(32px,4.2vw,56px)] leading-[1.06] tracking-[-0.015em]">
-              Fundação e estrutura, 100% concluídas
-            </h2>
-            <p className="mt-6 text-[16px] leading-[1.75] text-white/65">
-              Entrega prevista para setembro de 2026. Acompanhe o avanço real de cada etapa.
-            </p>
-          </div>
-
-          <div className="mt-14 space-y-7">
-            {p.status.map((s) => (
-              <div key={s.label}>
-                <div className="flex items-baseline justify-between gap-4">
-                  <span className="din text-[16px] text-white/80 md:text-[18px]">{s.label}</span>
-                  <span className="din text-[22px] text-verde [font-variant-numeric:tabular-nums] md:text-[26px]">
-                    {s.valor}%
-                  </span>
-                </div>
-                <div className="mt-3 h-px w-full bg-white/12">
-                  <div data-barra={s.valor} className="h-full origin-left bg-verde" />
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

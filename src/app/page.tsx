@@ -9,30 +9,32 @@ import { asset } from "@/lib/asset";
 export default function Home() {
   return (
     <>
-      <SiteHeader tone="claro" heroMenu />
+      <SiteHeader tone="escuro" heroMenu />
       <main>
         <HomeHero />
         <ProjectsSection />
         <StatsBand />
 
         {/* Focamos no que importa */}
-        <section className="bg-white">
+        <section className="bg-[#C9AD96] text-[#53381E]">
           <div className="grid grid-cols-1 lg:min-h-[820px] lg:grid-cols-[3fr_2fr]">
-            <div
-              className="min-h-[380px] bg-cover bg-center lg:min-h-full"
-              style={{ backgroundImage: `url(${asset("/wp/facilities-piscina-2.jpg")})` }}
-              role="img"
-              aria-label="Rooftop com piscina de empreendimento Focal"
-            />
+            <div className="p-6 lg:p-12">
+              <div
+                className="h-full min-h-[380px] rounded-lg bg-cover bg-center lg:min-h-[calc(100%)]"
+                style={{ backgroundImage: `url(${asset("/wp/facilities-piscina-2.jpg")})` }}
+                role="img"
+                aria-label="Rooftop com piscina de empreendimento Focal"
+              />
+            </div>
             <div className="flex flex-col justify-center px-6 py-16 md:py-20 lg:pl-24 lg:pr-16 xl:pl-28">
               <Reveal>
-                <h6 className="kicker text-ink/70">Focamos no que importa</h6>
-                <h2 className="din h-section mt-5 text-ink-2">
+                <h6 className="kicker opacity-70">Focamos no que importa</h6>
+                <h2 className="din h-section mt-5">
                   + 500MM
                   <br />
                   VENDIDOS
                 </h2>
-                <div className="mt-9 max-w-[60ch] space-y-6 text-[16px] leading-[1.8] text-ink-2">
+                <div className="mt-9 max-w-[60ch] space-y-6 text-[16px] leading-[1.8] opacity-90">
                   <p>
                     Somos fascinados pela arquitetura pois acreditamos na sua capacidade de criar
                     experiências singulares e nos inspirar a uma vida melhor.

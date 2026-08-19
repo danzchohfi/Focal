@@ -33,16 +33,16 @@ export default function ProjectsSection() {
   }, [measure]);
 
   return (
-    <section id="empreendimentos" className="border-t border-[#f4f4f4] bg-white py-[72px]">
+    <section id="empreendimentos" className="bg-[#F6F4EF] py-[72px] text-[#12475F]">
       <Reveal className="px-6 text-center">
-        <h1 className="din-book h-hero text-ink-2">Empreendimentos</h1>
+        <h1 className="din-book h-hero">Empreendimentos</h1>
       </Reveal>
 
       {/* Abas de filtro — trilho #222 com cursor branco deslizante */}
       <Reveal className="mt-12 px-4" delay={100}>
         <div className="flex justify-center">
           <div className="max-w-full overflow-x-auto rounded-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div ref={trackRef} className="relative flex w-max rounded-full bg-ink-2 p-1">
+            <div ref={trackRef} className="relative flex w-max rounded-full bg-[#12475F] p-1">
               {thumb && (
                 <span
                   aria-hidden
@@ -62,7 +62,7 @@ export default function ProjectsSection() {
                   onMouseEnter={() => setFiltro(f.id)}
                   onFocus={() => setFiltro(f.id)}
                   className={`relative z-10 whitespace-nowrap rounded-full px-[23px] py-2.5 text-[16px] transition-colors duration-200 md:text-[17px] ${
-                    filtro === f.id ? "text-black" : "text-white/85 hover:text-white"
+                    filtro === f.id ? "text-[#12475F]" : "text-white/85 hover:text-white"
                   }`}
                 >
                   {f.label}
@@ -95,7 +95,7 @@ export default function ProjectsSection() {
             </Carousel>
           </div>
         ) : (
-          <p className="py-16 text-center text-[15px] text-black/50">
+          <p className="py-16 text-center text-[15px] opacity-60">
             Nenhum empreendimento nesta categoria no momento.
           </p>
         )}

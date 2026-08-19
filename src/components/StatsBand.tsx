@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { asset } from "@/lib/asset";
 
 const stats = [
   { alvo: 500, fmt: (v: number) => `${v}MM`, label: "Vendidos" },
@@ -40,17 +39,12 @@ export default function StatsBand() {
   }, []);
 
   return (
-    <section
-      ref={ref}
-      className="relative bg-cover bg-center bg-scroll py-32 md:bg-fixed md:py-44"
-      style={{ backgroundImage: `url(${asset("/wp/VOO-PASSARO.jpg")})` }}
-    >
-      <div className="absolute inset-0 bg-black/35" />
+    <section ref={ref} className="relative bg-[#2F5D48] py-32 md:py-40">
       <div className="relative mx-auto grid max-w-[1300px] grid-cols-1 gap-14 px-6 text-center text-white sm:grid-cols-3">
         {stats.map((s, i) => (
           <div key={s.label}>
             <p className="din h-num">{s.fmt(vals[i])}</p>
-            <p className="din mt-3 text-[13px] uppercase tracking-[0.15em] text-white/85">
+            <p className="din mt-3 text-[13px] uppercase tracking-[0.15em] text-[#DFE6DC]">
               {s.label}
             </p>
           </div>

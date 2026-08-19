@@ -48,7 +48,7 @@ function sufixo(valor: number): string {
  * relação ao pin do trilho de diferenciais — medir o wrapper por rect a
  * cada frame é imune a tudo isso.
  */
-export default function ObraScroll() {
+export default function ObraScroll({ fundo = "#0C100F" }: { fundo?: string }) {
   const raiz = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -277,8 +277,8 @@ export default function ObraScroll() {
     <section
       ref={raiz}
       aria-label="A obra, etapa por etapa"
-      className="relative h-[var(--obra-h)] border-t border-white/10 bg-[#0C100F] motion-reduce:h-auto"
-      style={{ "--obra-h": `${(1 + FASES.length * VH_POR_FASE) * 100}svh` } as React.CSSProperties}
+      className="relative h-[var(--obra-h)] border-t border-white/10 bg-[var(--obra-bg)] motion-reduce:h-auto"
+      style={{ "--obra-h": `${(1 + FASES.length * VH_POR_FASE) * 100}svh`, "--obra-bg": fundo } as React.CSSProperties}
     >
       {/* Painel preso enquanto o scroll atravessa o wrapper */}
       <div data-obra-painel className="sticky top-0 h-[100svh] overflow-hidden">
@@ -298,15 +298,15 @@ export default function ObraScroll() {
         {/* Véus de legibilidade: texto à esquerda, barra embaixo */}
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-r from-[#0C100F]/75 via-[#0C100F]/25 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-[var(--obra-bg)]/75 via-[var(--obra-bg)]/25 to-transparent"
         />
         <div
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#0C100F]/85 to-transparent"
+          className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[var(--obra-bg)]/85 to-transparent"
         />
         <div
           aria-hidden
-          className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#0C100F]/70 to-transparent"
+          className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[var(--obra-bg)]/70 to-transparent"
         />
 
         {/* Moldura superior */}
@@ -342,7 +342,7 @@ export default function ObraScroll() {
                 </h2>
                 <p
                   data-obra-entrada={i === 0 ? "" : undefined}
-                  className="din mt-7 inline-block rounded-[4px] bg-[#0C100F]/70 px-4 py-2.5 text-[12px] uppercase tracking-[0.16em] text-white/85 backdrop-blur-sm"
+                  className="din mt-7 inline-block rounded-[4px] bg-[var(--obra-bg)]/70 px-4 py-2.5 text-[12px] uppercase tracking-[0.16em] text-white/85 backdrop-blur-sm"
                 >
                   <span className="text-verde">
                     <span data-obra-pct className="[font-variant-numeric:tabular-nums]">
@@ -373,7 +373,7 @@ export default function ObraScroll() {
               <span
                 key={f.n}
                 aria-hidden
-                className="absolute top-0 h-full w-px bg-[#0C100F]/80"
+                className="absolute top-0 h-full w-px bg-[var(--obra-bg)]/80"
                 style={{ left: `${((i + 1) / FASES.length) * 100}%` }}
               />
             ))}

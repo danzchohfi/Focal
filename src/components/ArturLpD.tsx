@@ -5,6 +5,7 @@ import Link from "next/link";
 import Logo from "./Logo";
 import MapEmbed from "./MapEmbed";
 import EscalaAltura from "./lpc/EscalaAltura";
+import ObraScroll from "./lpc/ObraScroll";
 import IconeD, { type IconeDNome } from "./lpd/IconeD";
 import BairroExplorer from "./lpd/BairroExplorer";
 import CartoesMorar from "./lpd/CartoesMorar";
@@ -360,7 +361,7 @@ export default function ArturLpD() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M8 5.5v13l11-6.5z" />
               </svg>
-              Ver o filme do bairro
+              Ver o filme da obra
             </a>
           </div>
 
@@ -373,9 +374,9 @@ export default function ArturLpD() {
         </div>
       </section>
 
-      {/* ───────────── O filme conduzido pelo scroll ───────────── */}
+      {/* ───────────── O filme da obra (Higsfield/Stream) — peça central ───────────── */}
       <div id="filme">
-        <ScrollFilm />
+        <ObraScroll fundo={COR.navyFundo} />
       </div>
 
       {/* ───────────── Pé-direito duplo (família azul) ───────────── */}
@@ -437,6 +438,9 @@ export default function ArturLpD() {
           </div>
         </div>
       </section>
+
+      {/* ───────────── Filme aéreo: a chegada ao bairro ───────────── */}
+      <ScrollFilm />
 
       {/* ───────────── Vizinhança (família verde) ───────────── */}
       <section className="py-24 md:py-32" style={{ background: COR.salvia, color: COR.pinho }}>
@@ -579,29 +583,14 @@ export default function ArturLpD() {
                   A obra
                 </p>
                 <h2 className="din mt-4 text-[clamp(30px,4vw,50px)] leading-[1.08] tracking-[-0.015em]">
-                  Fundação e estrutura, 100% concluídas.
+                  A obra, apresentada por quem a desenhou.
                 </h2>
                 <p className="mt-5 max-w-[46ch] text-[16px] leading-[1.75] opacity-75">
-                  Entrega prevista para setembro de 2026. No vídeo, o arquiteto do Artur 73 percorre
-                  a obra e mostra o que já está de pé.
+                  No vídeo, o arquiteto do Artur 73 percorre a obra e mostra o que já está de pé.
+                  Entrega prevista para setembro de 2026.
                 </p>
               </div>
 
-              <div className="mt-10 space-y-6">
-                {p.status.map((s) => (
-                  <div key={s.label}>
-                    <div className="flex items-baseline justify-between gap-4">
-                      <span className="din text-[15px] opacity-80 md:text-[17px]">{s.label}</span>
-                      <span className="din text-[20px] [font-variant-numeric:tabular-nums] md:text-[24px]" style={{ color: COR.pinho }}>
-                        {s.valor}%
-                      </span>
-                    </div>
-                    <div className="mt-2.5 h-px w-full" style={{ background: "rgba(18,71,95,.18)" }}>
-                      <div data-barra={s.valor} className="h-full origin-left" style={{ background: COR.pinho }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 

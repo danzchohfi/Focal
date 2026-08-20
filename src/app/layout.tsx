@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import Script from "next/script";
+import AtribuicaoBoot from "@/components/AtribuicaoBoot";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -43,6 +44,7 @@ export default function RootLayout({
               "document.documentElement.classList.add('js');window.dataLayer=window.dataLayer||[];",
           }}
         />
+        <AtribuicaoBoot />
         {children}
         <WhatsAppWidget />
         {GA_ID && (

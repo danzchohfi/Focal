@@ -3,6 +3,7 @@ import ProjectCard from "@/components/ProjectCard";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import WaCta from "@/components/WaCta";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { projetos } from "@/data/projetos";
@@ -114,20 +115,20 @@ export default function ParceriasPage() {
 
           <Reveal delay={200}>
             <div className="mt-14 flex justify-center">
-              <a
+              <WaCta
                 href={waLink(
                   site.whatsappComercial,
                   "Olá *Focal Inc*! Preciso de mais informações sobre Parcerias"
                 )}
-                target="_blank"
-                rel="noopener noreferrer"
+                posicao="parcerias-cadastro"
+                contexto="parcerias"
                 className="flex items-center gap-3 bg-verde px-10 py-4 text-[15px] font-semibold uppercase tracking-widest text-white transition-opacity hover:opacity-85"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M3.5 3.5c4.7-4.7 12.3-4.7 17 0a12 12 0 0 1-13.8 19.3l-5.8.7a.4.4 0 0 1-.4-.4l.7-5.8A12 12 0 0 1 3.5 3.5zm10 10.2-.9 1.2a9.8 9.8 0 0 1-3.5-3.5l1.2-.9a.8.8 0 0 0 .2-.9l-1.3-2.9a.8.8 0 0 0-.9-.4l-2 .5a.8.8 0 0 0-.6.9A11.8 11.8 0 0 0 15.8 17.5a.8.8 0 0 0 .9-.6l.5-2a.8.8 0 0 0-.4-.9l-2.9-1.3a.8.8 0 0 0-.9.2z" />
                 </svg>
                 Cadastre-se
-              </a>
+              </WaCta>
             </div>
           </Reveal>
         </section>

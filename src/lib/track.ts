@@ -1,6 +1,9 @@
 // Tracking de conversão: empurra eventos para o dataLayer (GTM) e para o
-// gtag (GA4) quando presentes. As variantes de A/B ativas são anexadas
+// gtag (GA4) quando presentes. As variantes de A/B ativas e a atribuição de
+// mídia (lead_ref, canal, campanha, grupo, anúncio) são anexadas
 // automaticamente a todo evento.
+
+import { atribuicaoParaEventos } from "./atribuicao/captura";
 
 type Params = Record<string, string | number | boolean | undefined>;
 
@@ -35,6 +38,7 @@ export function track(event: string, params: Params = {}) {
     event,
     page: window.location.pathname,
     ...variantes(),
+    ...atribuicaoParaEventos(),
     ...params,
   };
   window.dataLayer = window.dataLayer ?? [];

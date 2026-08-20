@@ -1,18 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
+import { aoClicarWhatsApp, useHrefWhatsApp } from "@/lib/atribuicao/whatsapp";
 
 // Botão flutuante de WhatsApp (equivalente ao Joinchat do site atual).
 export default function WhatsAppWidget() {
   const [bubble, setBubble] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const href = useHrefWhatsApp(waLink(site.whatsapp), { posicao: "widget" });
+  const pathname = usePathname();
 
   useEffect(() => {
     const t = setTimeout(() => setBubble(true), 2500);
     return () => clearTimeout(t);
   }, []);
+
+  // Páginas internas (relatórios) não são superfície de conversão.
+  if (pathname?.startsWith("/relatorios")) return null;
 
   return (
     <div className="wa-widget fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
@@ -30,10 +37,13 @@ export default function WhatsAppWidget() {
         </div>
       )}
       <a
-        href={waLink(site.whatsapp)}
+        href={href}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => track("clique_whatsapp", { posicao: "widget" })}
+        onClick={() => {
+          track("clique_whatsapp", { posicao: "widget" });
+          aoClicarWhatsApp({ posicao: "widget" });
+        }}
         aria-label="Abrir bate-papo no WhatsApp"
         className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25d366] shadow-lg transition-transform hover:scale-105"
       >

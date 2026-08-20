@@ -13,6 +13,8 @@ import HeroFilm from "./lpd/HeroFilm";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
+import { aoClicarWhatsApp, comCodigo, useHrefWhatsApp } from "@/lib/atribuicao/whatsapp";
+import { obtemRef } from "@/lib/atribuicao/captura";
 import { getProjeto } from "@/data/projetos";
 
 // ── Dados comerciais da campanha (mesmos das variantes B/C) ──────────────
@@ -43,6 +45,9 @@ const COR = {
   off: "#F6F4EF",
 };
 
+/** Contexto de conversão desta LP (vai para o CRM junto do código). */
+const CONTEXTO = 'Artur 73 — LP D';
+
 function waMsg(sobre: string) {
   return waLink(site.whatsapp, `Olá! Vi o Artur 73 no site e quero ${sobre}`);
 }
@@ -60,12 +65,16 @@ function Cta({
   children: React.ReactNode;
   className?: string;
 }) {
+  const href = useHrefWhatsApp(waMsg(sobre), { posicao, contexto: CONTEXTO });
   return (
     <a
-      href={waMsg(sobre)}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track("clique_whatsapp", { posicao })}
+      onClick={() => {
+        track("clique_whatsapp", { posicao, contexto: CONTEXTO });
+        aoClicarWhatsApp({ posicao, contexto: CONTEXTO });
+      }}
       className={`cta group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-md bg-verde px-8 py-4 text-white transition-transform duration-200 active:scale-[0.985] ${className}`}
     >
       <span
@@ -175,9 +184,12 @@ function FormRapido() {
     } catch {
       track("submit_form", { contexto: "Artur 73 — LP D", canal: "whatsapp_fallback" });
       setWaHref(
+        comCodigo(
         waLink(
           site.whatsapp,
           `Olá! Vi o Artur 73 no site. Meu nome é ${data.nome}. Quero receber as plantas e valores. Pretendo comprar: ${data.quando}.`
+        ),
+          obtemRef()
         )
       );
       setEstado("fallback");

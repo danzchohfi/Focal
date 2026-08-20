@@ -1,4 +1,9 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+/* O scan de classes fica restrito à UI. Varrer src/lib e public/wp (espelho do
+   WordPress) além de ser desperdício, alimenta o extrator do Tailwind com
+   regex e strings de servidor — um deles derruba a compilação do CSS. */
+@source "../app";
+@source "../components";
 @import "./fonts.css";
 
 @theme {

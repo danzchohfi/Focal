@@ -9,6 +9,8 @@ import Reveal from "./Reveal";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
+import { aoClicarWhatsApp, comCodigo, useHrefWhatsApp } from "@/lib/atribuicao/whatsapp";
+import { obtemRef } from "@/lib/atribuicao/captura";
 import { getProjeto } from "@/data/projetos";
 
 // ── Dados comerciais da campanha ─────────────────────────────────────────
@@ -22,6 +24,9 @@ const comercial = {
 // ─────────────────────────────────────────────────────────────────────────
 
 const p = getProjeto("artur-73")!;
+
+/** Contexto de conversão desta LP (vai para o CRM junto do código). */
+const CONTEXTO = 'Artur 73';
 
 function waMsg(sobre: string) {
   return waLink(site.whatsapp, `Olá! Vi o Artur 73 no site e quero ${sobre}`);
@@ -40,12 +45,16 @@ function WaButton({
   grande?: boolean;
   className?: string;
 }) {
+  const href = useHrefWhatsApp(waMsg(sobre), { posicao, contexto: CONTEXTO });
   return (
     <a
-      href={waMsg(sobre)}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track("clique_whatsapp", { posicao })}
+      onClick={() => {
+        track("clique_whatsapp", { posicao, contexto: CONTEXTO });
+        aoClicarWhatsApp({ posicao, contexto: CONTEXTO });
+      }}
       className={`cta inline-flex items-center justify-center gap-3 rounded-md bg-verde text-white transition-[background-color,transform] duration-200 hover:bg-[#14805f] active:scale-[0.985] ${
         grande ? "px-8 py-4 text-[14px]" : "px-6 py-3.5"
       } ${className}`}
@@ -87,9 +96,12 @@ function ShortForm() {
     } catch {
       track("submit_form", { contexto: "Artur 73", canal: "whatsapp_fallback" });
       setWaHref(
+        comCodigo(
         waLink(
           site.whatsapp,
           `Olá! Vi o Artur 73 no site. Meu nome é ${data.nome}. Quero receber as plantas e valores. Pretendo comprar: ${data.quando}.`
+        ),
+          obtemRef()
         )
       );
       setEstado("fallback");

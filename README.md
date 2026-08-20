@@ -44,6 +44,20 @@ pnpm lint
 - **Preview:** GitHub Pages (workflow `.github/workflows/pages.yml`, build estático com `STATIC_EXPORT=1`).
 - **Produção:** importar na Vercel (ou hospedagem Node) e apontar o DNS de `focalinc.com.br`; variáveis: `NEXT_PUBLIC_SITE_URL`, `LEAD_WEBHOOK_URL` (opcional).
 
+### Autor do commit e "Deployment Blocked"
+
+A Vercel só publica depois de casar o e-mail do autor do commit com uma conta
+do GitHub. E-mail não cadastrado em conta nenhuma faz a build parar em
+*Deployment Blocked* — mesmo com o push tendo funcionado. Não é permissão do
+repositório, é identidade.
+
+O conserto certo é cada pessoa cadastrar e verificar o e-mail de trabalho no
+GitHub (Settings → Emails); a autoria fica correta e o deploy passa. Como rede
+de segurança, `.claude/hooks/git-identity.sh` roda no início de cada sessão do
+Claude Code e, se o e-mail configurado não for um dos que sabidamente resolvem,
+troca só o e-mail (no `.git/config` deste repositório, nunca no `--global`),
+guardando no nome do autor quem estava rodando a sessão.
+
 ## Melhorias em relação ao WordPress (sem mudar a experiência)
 
 - Sem bloqueio 403 a crawlers; previews de link funcionam.

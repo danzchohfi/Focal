@@ -353,3 +353,73 @@ describe("cobertura", () => {
     assert.equal(relatorio.cobertura.investimentoSemJornada, 1200);
   });
 });
+
+describe("maturidade da coorte", () => {
+  // "hoje" é injetado: o cálculo depende de quanto tempo passou desde o
+  // clique, e um teste que dependesse do relógio quebraria sozinho.
+  const HOJE = "2026-08-20T12:00:00.000Z";
+
+  it("coorte antiga está madura; coorte de ontem, não", () => {
+    const dados = cenario();
+    const madura = montaRelatorio(dados, {
+      ...MARCO,
+      agora: HOJE,
+      cicloDias: 120,
+    });
+    // Cliques de março, 160+ dias atrás, com ciclo de 120 → maduros.
+    assert.equal(madura.maturidade?.fracao, 1);
+
+    dados.custos = dados.custos.map((custo) => ({ ...custo, data: "2026-08-19" }));
+    const verde = montaRelatorio(dados, {
+      de: "2026-08-01",
+      ate: "2026-08-31",
+      agora: HOJE,
+      cicloDias: 120,
+    });
+    assert.ok((verde.maturidade?.fracao ?? 1) < 0.02);
+  });
+
+  it("pondera pelo investimento de cada dia", () => {
+    const dados = cenario();
+    dados.custos = [
+      custo({ id: "velho", data: "2026-01-01", custo: 1000, campanhaId: "C1" }),
+      custo({ id: "novo", data: "2026-08-19", custo: 1000, campanhaId: "C2", plataforma: "meta" }),
+    ];
+    const relatorio = montaRelatorio(dados, {
+      de: "2026-01-01",
+      ate: "2026-08-31",
+      agora: HOJE,
+      cicloDias: 120,
+    });
+    // Metade do investimento maduro (fração 1) e metade quase zerada.
+    assert.ok(Math.abs((relatorio.maturidade?.fracao ?? 0) - 0.5) < 0.01);
+  });
+
+  it("usa a mediana observada quando existe e marca como observada", () => {
+    const relatorio = montaRelatorio(cenario(), { ...MARCO, agora: HOJE });
+    assert.equal(relatorio.maturidade?.observado, true);
+    assert.equal(relatorio.maturidade?.cicloDias, 132);
+  });
+
+  it("cai para a estimativa padrão sem venda medida", () => {
+    const dados = cenario();
+    dados.eventos = dados.eventos.filter((evento) => evento.etapa !== "venda");
+    const relatorio = montaRelatorio(dados, { ...MARCO, agora: HOJE });
+    assert.equal(relatorio.maturidade?.observado, false);
+    assert.equal(relatorio.maturidade?.cicloDias, 120);
+  });
+
+  it("não aparece em período sem investimento nenhum", () => {
+    const relatorio = montaRelatorio(cenario(), {
+      de: "2026-07-01",
+      ate: "2026-07-31",
+      agora: HOJE,
+    });
+    assert.equal(relatorio.maturidade, undefined);
+  });
+
+  it("não se aplica à base por data do evento", () => {
+    const relatorio = montaRelatorio(cenario(), { ...MARCO, base: "evento", agora: HOJE });
+    assert.equal(relatorio.maturidade, undefined);
+  });
+});

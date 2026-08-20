@@ -24,6 +24,7 @@ import { conciliaJornadas, montaJornadas } from "./conciliacao";
 import type {
   Cobertura,
   Dimensao,
+  Maturidade,
   EntradaRelatorio,
   JornadaConciliada,
   LinhaRelatorio,
@@ -306,7 +307,47 @@ export function montaRelatorio(entrada: EntradaRelatorio, opcoes: OpcoesRelatori
     linhas: lista,
     total,
     cobertura: montaCobertura(conciliadas, lista, de, ate, base),
+    maturidade:
+      base === "clique"
+        ? calculaMaturidade(entrada.custos, { de, ate }, total.diasAteVenda, opcoes)
+        : undefined,
   };
+}
+
+/** Ciclo assumido enquanto não há venda suficiente para medir a mediana real. */
+const CICLO_PADRAO_DIAS = 120;
+
+/**
+ * Fração do ciclo já decorrida para o investimento do período, ponderada pelo
+ * gasto de cada dia: R$ 1 investido ontem quase não teve chance de virar
+ * venda; R$ 1 investido há um ano já teve toda.
+ */
+function calculaMaturidade(
+  custos: RegistroCusto[],
+  janela: { de: string; ate: string },
+  medianaObservada: number | undefined,
+  opcoes: OpcoesRelatorio
+): Maturidade | undefined {
+  // "Observado" só quando o ciclo veio de vendas reais do período — não quando
+  // foi arbitrado por parâmetro nem quando caiu na estimativa padrão.
+  const observado = opcoes.cicloDias === undefined && medianaObservada !== undefined;
+  const cicloDias = Math.max(1, opcoes.cicloDias ?? medianaObservada ?? CICLO_PADRAO_DIAS);
+  const agora = Date.parse(opcoes.agora ?? new Date().toISOString());
+
+  let ponderado = 0;
+  let investimento = 0;
+  for (const custo of custos) {
+    if (!dentro(custo.data, janela.de, janela.ate) || custo.custo <= 0) continue;
+    const decorridos = (agora - Date.parse(`${custo.data.slice(0, 10)}T12:00:00Z`)) / 86_400_000;
+    ponderado += Math.min(1, Math.max(0, decorridos / cicloDias)) * custo.custo;
+    investimento += custo.custo;
+  }
+
+  // Sem investimento no período não há coorte para amadurecer — e um "0%
+  // madura" ali seria pior que não dizer nada.
+  if (investimento <= 0) return undefined;
+
+  return { fracao: ponderado / investimento, cicloDias: Math.round(cicloDias), observado };
 }
 
 function montaCobertura(

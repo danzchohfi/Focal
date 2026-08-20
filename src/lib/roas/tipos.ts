@@ -43,6 +43,31 @@ export type OpcoesRelatorio = {
   fracaoReceita?: number;
   /** Considera só um empreendimento. */
   empreendimento?: string;
+  /**
+   * Ciclo típico de fechamento, em dias. Quando omitido, usa a mediana
+   * observada no próprio período e cai para 120 dias enquanto não houver
+   * venda suficiente para medir.
+   */
+  cicloDias?: number;
+  /** Momento de referência (ISO). Injetável para teste. */
+  agora?: string;
+};
+
+/**
+ * Quanto do ciclo de venda já passou para o investimento do período.
+ *
+ * Numa coorte por data do clique, um mês recente aparece com ROAS baixo
+ * simplesmente porque as vendas ainda não tiveram tempo de acontecer.
+ * Publicar esse número ao lado do ROAS é o que evita cortar a campanha de
+ * prospecção que ainda não maturou.
+ */
+export type Maturidade = {
+  /** 0 a 1: fração do ciclo já decorrida, ponderada pelo investimento. */
+  fracao: number;
+  /** Ciclo usado no cálculo, em dias. */
+  cicloDias: number;
+  /** O ciclo veio de vendas reais do período, ou é a estimativa padrão? */
+  observado: boolean;
 };
 
 export type EntradaRelatorio = {
@@ -137,6 +162,8 @@ export type Relatorio = {
   linhas: LinhaRelatorio[];
   total: LinhaRelatorio;
   cobertura: Cobertura;
+  /** Só faz sentido na base por data do clique. */
+  maturidade?: Maturidade;
 };
 
 /** Diagnóstico honesto de quanto do funil o relatório realmente enxerga. */

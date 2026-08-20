@@ -7,8 +7,8 @@ import TabelaRoas from "@/components/relatorio/TabelaRoas";
 import { repositorio } from "@/lib/dados/repositorio";
 import { montaRelatorio } from "@/lib/roas/relatorio";
 import { janelaRecente } from "@/lib/roas/sincronizacao";
-import { dataCurta } from "@/lib/roas/formato";
-import type { BaseTemporal, Dimensao, ModeloAtribuicao } from "@/lib/roas/tipos";
+import { dataCurta, percentual } from "@/lib/roas/formato";
+import type { BaseTemporal, Dimensao, Maturidade, ModeloAtribuicao } from "@/lib/roas/tipos";
 
 // O painel lê o banco a cada acesso — ler `searchParams` já marca a rota como
 // dinâmica. No build estático (GitHub Pages) não há servidor, e a página sai do
@@ -103,11 +103,14 @@ export default async function PaginaRoas({ searchParams }: { searchParams: Promi
               · {MODELOS.find((item) => item.valor === modelo)?.rotulo.toLowerCase()}
             </p>
           </div>
-          <p className="max-w-[46ch] text-[13px] leading-[1.6] text-black/55">
-            {base === "clique"
-              ? "O investimento de cada período é comparado com o que ELE gerou, mesmo que a venda tenha fechado meses depois. Os períodos mais recentes aparecem subestimados de propósito — a safra ainda não amadureceu."
-              : "Agrupado pela data da venda: mostra o que entrou no caixa no período, misturando safras de investimento. Bom para acompanhamento comercial, ruim para julgar campanha."}
-          </p>
+          <div className="max-w-[46ch] space-y-2">
+            <p className="text-[13px] leading-[1.6] text-black/55">
+              {base === "clique"
+                ? "O investimento de cada período é comparado com o que ELE gerou, mesmo que a venda tenha fechado meses depois. Os períodos mais recentes aparecem subestimados de propósito — a safra ainda não amadureceu."
+                : "Agrupado pela data da venda: mostra o que entrou no caixa no período, misturando safras de investimento. Bom para acompanhamento comercial, ruim para julgar campanha."}
+            </p>
+            {relatorio.maturidade && <AvisoMaturidade maturidade={relatorio.maturidade} />}
+          </div>
         </header>
 
         <Filtros
@@ -141,6 +144,35 @@ export default async function PaginaRoas({ searchParams }: { searchParams: Promi
         )}
       </div>
     </main>
+  );
+}
+
+/**
+ * O aviso que impede a leitura errada mais cara do relatório: cortar uma
+ * campanha de prospecção porque a coorte dela ainda não teve tempo de vender.
+ */
+function AvisoMaturidade({ maturidade }: { maturidade: Maturidade }) {
+  const madura = maturidade.fracao >= 0.95;
+  return (
+    <p
+      className={`rounded-[4px] px-3 py-2 text-[13px] leading-[1.55] ${
+        madura ? "bg-black/[0.04] text-black/60" : "bg-[#C2710C]/[0.09] text-[#7C4A08]"
+      }`}
+    >
+      {madura ? (
+        <>Coorte madura: os cliques deste período já tiveram todo o tempo típico de fechamento.</>
+      ) : (
+        <>
+          <strong className="font-semibold">
+            Coorte {percentual(maturidade.fracao)} madura.
+          </strong>{" "}
+          Os cliques deste período tiveram, em média, essa fração do ciclo de{" "}
+          {maturidade.cicloDias} dias{" "}
+          {maturidade.observado ? "medido nas vendas reais" : "estimado (ainda sem venda medida)"}.
+          O ROAS abaixo ainda vai subir.
+        </>
+      )}
+    </p>
   );
 }
 

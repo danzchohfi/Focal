@@ -90,6 +90,17 @@ function imprimeTabela(relatorio: Relatorio) {
       : "Base por data do evento: mostra o que entrou no período, misturando safras de investimento.\n"
   );
 
+  if (relatorio.maturidade) {
+    const { fracao, cicloDias, observado } = relatorio.maturidade;
+    const fonte = observado ? "medido nas vendas reais" : "estimado, ainda sem venda medida";
+    console.log(
+      fracao >= 0.95
+        ? `Coorte madura (ciclo de ${cicloDias} dias, ${fonte}).\n`
+        : `Coorte ${Math.round(fracao * 100)}% madura — os cliques deste período tiveram, em média, ` +
+            `essa fração do ciclo de ${cicloDias} dias (${fonte}). O ROAS abaixo ainda vai subir.\n`
+    );
+  }
+
   console.log(COLUNAS.map((c) => corta(c.titulo, c.largura)).join(" "));
   console.log(COLUNAS.map((c) => "─".repeat(c.largura)).join(" "));
   for (const linha of relatorio.linhas) {

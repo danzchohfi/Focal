@@ -451,6 +451,21 @@ com o que **ele** gerou, mesmo que a venda saia em dezembro. O preço é que os
 meses recentes aparecem subestimados de propósito — a safra ainda não
 amadureceu. A base `evento` continua disponível para acompanhamento comercial.
 
+**Maturidade da coorte.** Como o preço acima é real, o relatório publica junto
+quanto do ciclo já passou:
+
+```
+maturidade = média, ponderada pelo investimento de cada dia,
+             de min(1, dias_desde_o_clique ÷ ciclo_mediano)
+```
+
+O ciclo mediano vem das vendas reais do período (`diasAteVenda`) e cai para 120
+dias enquanto não houver venda medida. É o número que impede a leitura errada
+mais cara do relatório: cortar a campanha de prospecção porque a coorte dela
+ainda não teve tempo de vender. Enquanto não houver **dois ciclos completos** de
+dados reais, publique a maturidade e **não projete** o ROAS final a partir
+dela — a curva de maturação ainda não existe.
+
 **Funil cumulativo.** Uma venda conta também como qualificado e como visita,
 mesmo que o CRM não tenha registrado a etapa intermediária.
 

@@ -34,10 +34,13 @@ function Pin({ x, y, label, ancora = "esq" }: { x: number; y: number; label: str
 export default function MapaBairro({
   className = "",
   children,
+  rotulos = true,
 }: {
   className?: string;
   /** Pins dinâmicos (ex.: BairroExplorer). Quando presentes, substituem os estáticos. */
   children?: React.ReactNode;
+  /** Em tamanhos compactos os nomes de rua ficariam ilegíveis — desligue aqui. */
+  rotulos?: boolean;
 }) {
   return (
     <svg
@@ -74,7 +77,7 @@ export default function MapaBairro({
       <path d="M60 190 L430 120 L440 210 L120 300 Z" fill={PINHO} opacity="0.05" stroke={PINHO} strokeWidth="0.8" />
 
       {/* nomes de rua */}
-      <g fill={PINHO} fontSize="12" letterSpacing="0.04em">
+      <g fill={PINHO} fontSize="12" letterSpacing="0.04em" style={rotulos ? undefined : { display: "none" }}>
         <text x="620" y="76" transform="rotate(6 620 76)">Av. Paulista</text>
         <text x="150" y="128" transform="rotate(-11 150 128)">Av. Dr. Arnaldo</text>
         <text x="404" y="330" transform="rotate(79 404 330)">Av. Rebouças</text>

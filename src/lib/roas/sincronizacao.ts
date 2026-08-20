@@ -14,7 +14,7 @@
 // Nenhuma delas explode quando a integração correspondente não está
 // configurada: devolvem zero e seguem.
 
-import { sha256 } from "@/lib/atribuicao/identidade";
+import { hasheiaIdentidade, sha256 } from "@/lib/atribuicao/identidade";
 import { repositorio } from "@/lib/dados/repositorio";
 import type { RegistroCusto, RegistroEvento, RegistroLead } from "@/lib/dados/tipos";
 import { configCvcrm } from "@/lib/cvcrm/config";
@@ -120,10 +120,17 @@ function valorProxyPadrao(): ValoresProxy {
  * modelo do relatório: as plataformas só aceitam um identificador de clique
  * por conversão, e crédito fracionário não existe do lado delas.
  */
+export type HashesLead = {
+  emailGoogle?: string;
+  emailMeta?: string;
+  telGoogle?: string;
+  telMeta?: string;
+};
+
 export function montaConversoesOffline(
   jornadas: JornadaConciliada[],
   leads: RegistroLead[],
-  hashes: Map<string, { email?: string; telGoogle?: string; telMeta?: string }>,
+  hashes: Map<string, HashesLead>,
   valores: ValoresProxy = valorProxyPadrao()
 ): ConversaoOffline[] {
   const leadPorRef = new Map(leads.filter((lead) => lead.ref).map((lead) => [lead.ref, lead]));
@@ -152,7 +159,8 @@ export function montaConversoesOffline(
         wbraid: credito.gclid || credito.gbraid ? undefined : credito.wbraid,
         fbc: credito.fbc,
         fbp: credito.fbp,
-        emailSha256: hash?.email ?? lead?.emailSha256,
+        emailSha256Google: hash?.emailGoogle ?? lead?.emailSha256Google,
+        emailSha256Meta: hash?.emailMeta ?? lead?.emailSha256,
         telefoneSha256Google: hash?.telGoogle,
         telefoneSha256Meta: hash?.telMeta ?? lead?.telefoneSha256,
         idExterno: lead?.crmId ?? jornada.ref,
@@ -163,16 +171,22 @@ export function montaConversoesOffline(
   return saida;
 }
 
-/** Rehasheia o telefone nos dois formatos (o registro guarda só o da Meta). */
+/**
+ * Recalcula os quatro hashes de identidade a partir do contato bruto.
+ * Necessário porque o registro guarda só o formato da Meta, e o Google usa
+ * outro tanto no telefone (com `+`) quanto no e-mail (regra do Gmail).
+ */
 async function montaHashes(leads: RegistroLead[]) {
-  const mapa = new Map<string, { email?: string; telGoogle?: string; telMeta?: string }>();
+  const mapa = new Map<string, HashesLead>();
   for (const lead of leads) {
     if (!lead.ref) continue;
+    const hashes = await hasheiaIdentidade({ email: lead.email, telefone: lead.telefone });
     const telefone = lead.telefoneNormalizado;
     mapa.set(lead.ref, {
-      email: lead.emailSha256,
-      telMeta: telefone ? await sha256(telefone) : lead.telefoneSha256,
-      telGoogle: telefone ? await sha256(`+${telefone}`) : undefined,
+      emailGoogle: hashes.emailSha256Google ?? lead.emailSha256Google,
+      emailMeta: hashes.emailSha256Meta ?? lead.emailSha256,
+      telMeta: hashes.telefoneSha256Meta ?? (telefone ? await sha256(telefone) : lead.telefoneSha256),
+      telGoogle: hashes.telefoneSha256Google ?? (telefone ? await sha256(`+${telefone}`) : undefined),
     });
   }
   return mapa;

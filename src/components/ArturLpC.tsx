@@ -11,7 +11,8 @@ import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
 import { aoClicarWhatsApp, comCodigo, useHrefWhatsApp } from "@/lib/atribuicao/whatsapp";
-import { obtemRef } from "@/lib/atribuicao/captura";
+import { capturaAtribuicao, obtemAtribuicao, obtemRef } from "@/lib/atribuicao/captura";
+import { registraEvento } from "@/lib/atribuicao/eventos";
 import { getProjeto } from "@/data/projetos";
 
 // ── Dados comerciais da campanha ─────────────────────────────────────────
@@ -95,6 +96,8 @@ function FormRapido() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    // Sem isto o lead chega ao servidor sem origem e nasce órfão de campanha.
+    const atribuicao = obtemAtribuicao() ?? capturaAtribuicao();
     setEstado("enviando");
     try {
       const res = await fetch("/api/lead", {
@@ -107,6 +110,7 @@ function FormRapido() {
           quando: data.quando,
           contexto: "Artur 73 — LP C",
           origem: window.location.pathname,
+          atribuicao,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
@@ -114,6 +118,7 @@ function FormRapido() {
       setEstado("ok");
     } catch {
       track("submit_form", { contexto: "Artur 73 — LP C", canal: "whatsapp_fallback" });
+      registraEvento("formulario", { contexto: "Artur 73 — LP C" });
       setWaHref(
         comCodigo(
         waLink(

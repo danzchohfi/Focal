@@ -28,8 +28,9 @@ export type ConversaoOffline = {
   fbc?: string;
   fbp?: string;
   ctwaClid?: string;
-  /** Identidade hasheada (SHA-256 hex minúsculo), já no formato de cada plataforma. */
-  emailSha256?: string;
+  /** Identidade hasheada (SHA-256 hex minúsculo), no formato de cada plataforma. */
+  emailSha256Google?: string;
+  emailSha256Meta?: string;
   /** Telefone com `+`, formato do Google Ads. */
   telefoneSha256Google?: string;
   /** Telefone sem `+`, formato da Meta. */

@@ -22,10 +22,31 @@ import { configMeta, VERSAO_GRAPH } from "./custos";
 
 /** Teto de `event_time` no passado para eventos comuns. */
 export const JANELA_PADRAO_DIAS = 7;
-/** Teto para eventos offline com `action_source: physical_store`. */
-export const JANELA_OFFLINE_DIAS = 62;
-/** Janela máxima de atribuição clique → conversão. */
+
+/**
+ * Teto para eventos offline (`action_source: physical_store`).
+ *
+ * A doc põe as duas frases no mesmo parágrafo — "if any event_time in data is
+ * greater than 7 days in the past, we return an error for the entire request"
+ * e "for offline and physical store events... you should upload transactions
+ * within 62 days" — sem dizer que a segunda dispensa a primeira. A leitura
+ * conservadora é 7 dias por padrão; com o toggle "Allow Historical Conversion
+ * Uploads" ligado no Events Manager, sobe para 90. Ligue
+ * `META_JANELA_HISTORICA=1` só depois de confirmar o toggle na conta.
+ */
+export const JANELA_OFFLINE_DIAS = process.env.META_JANELA_HISTORICA === "1" ? 90 : 7;
+
+/** Janela máxima de atribuição clique → conversão (otimização e web). */
 export const JANELA_ATRIBUICAO_DIAS = 7;
+
+/**
+ * Janela de RELATÓRIO. O clique de 28 dias saiu da configuração de atribuição
+ * do conjunto de anúncios, mas continua disponível na Insights API
+ * (`action_attribution_windows=28d_click`) — é a janela mais longa que a Meta
+ * ainda reporta.
+ */
+export const JANELA_RELATORIO_DIAS = 28;
+
 /** A Meta aceita até 1.000 eventos por requisição. */
 const LOTE = 1000;
 
@@ -66,7 +87,7 @@ export function montaEventoMeta(conversao: ConversaoOffline, opcoes: OpcoesEnvio
   const ctwa = conversao.ctwaClid;
 
   const userData: Record<string, unknown> = {};
-  if (conversao.emailSha256) userData.em = [conversao.emailSha256];
+  if (conversao.emailSha256Meta) userData.em = [conversao.emailSha256Meta];
   if (conversao.telefoneSha256Meta) userData.ph = [conversao.telefoneSha256Meta];
   if (conversao.primeiroNomeSha256) userData.fn = [conversao.primeiroNomeSha256];
   if (conversao.sobrenomeSha256) userData.ln = [conversao.sobrenomeSha256];
@@ -103,7 +124,7 @@ export function montaEventoMeta(conversao: ConversaoOffline, opcoes: OpcoesEnvio
 /** Decide se o evento pode ser enviado e explica quando não pode. */
 export function avaliaConversaoMeta(conversao: ConversaoOffline) {
   const identificadores = [
-    conversao.emailSha256,
+    conversao.emailSha256Meta,
     conversao.telefoneSha256Meta,
     conversao.fbc,
     conversao.ctwaClid,
@@ -134,6 +155,15 @@ export function seraAtribuido(conversao: ConversaoOffline) {
   return dias(conversao.tsClique, conversao.ts) <= JANELA_ATRIBUICAO_DIAS;
 }
 
+/** Fatia uma lista em lotes de tamanho fixo. */
+function lotes<T>(itens: T[], tamanho: number): T[][] {
+  const saida: T[][] = [];
+  for (let inicio = 0; inicio < itens.length; inicio += tamanho) {
+    saida.push(itens.slice(inicio, inicio + tamanho));
+  }
+  return saida;
+}
+
 export async function enviaConversoesMeta(
   conversoes: ConversaoOffline[],
   opcoes: OpcoesEnvioMeta = {}
@@ -152,6 +182,7 @@ export async function enviaConversoesMeta(
     return resultado;
   }
 
+  const agora = new Date().toISOString();
   const validas = conversoes.filter((conversao) => {
     const avaliacao = avaliaConversaoMeta(conversao);
     if (!avaliacao.pode) {
@@ -166,28 +197,39 @@ export async function enviaConversoesMeta(
     return true;
   });
 
-  for (let inicio = 0; inicio < validas.length; inicio += LOTE) {
-    const fatia = validas.slice(inicio, inicio + LOTE);
-    try {
-      const resposta = await fetch(
-        `https://graph.facebook.com/${VERSAO_GRAPH}/${config.datasetId}/events`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            data: fatia.map((conversao) => montaEventoMeta(conversao, opcoes)),
-            access_token: config.token,
-            ...(opcoes.codigoTeste ? { test_event_code: opcoes.codigoTeste } : {}),
-          }),
-        }
-      );
-      const corpo = await resposta.text();
-      if (!resposta.ok) throw new Error(`Meta CAPI ${resposta.status}: ${corpo.slice(0, 400)}`);
-      resultado.enviados += fatia.length;
-    } catch (erro) {
-      resultado.erros.push(erro instanceof Error ? erro.message : String(erro));
-      resultado.descartados += fatia.length;
-      conta(resultado.motivos, "erro na Conversions API");
+  // Um único evento antigo demais derruba a REQUISIÇÃO INTEIRA — a doc é
+  // explícita: "we return an error for the entire request and process no
+  // events". Separar por idade garante que uma rejeição do lote histórico não
+  // leve junto os eventos recentes, que são os que otimizam a entrega.
+  const recentes: ConversaoOffline[] = [];
+  const historicos: ConversaoOffline[] = [];
+  for (const conversao of validas) {
+    (dias(conversao.ts, agora) <= JANELA_PADRAO_DIAS ? recentes : historicos).push(conversao);
+  }
+
+  for (const grupo of [recentes, historicos]) {
+    for (const fatia of lotes(grupo, LOTE)) {
+      try {
+        const resposta = await fetch(
+          `https://graph.facebook.com/${VERSAO_GRAPH}/${config.datasetId}/events`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              data: fatia.map((conversao) => montaEventoMeta(conversao, opcoes)),
+              access_token: config.token,
+              ...(opcoes.codigoTeste ? { test_event_code: opcoes.codigoTeste } : {}),
+            }),
+          }
+        );
+        const corpo = await resposta.text();
+        if (!resposta.ok) throw new Error(`Meta CAPI ${resposta.status}: ${corpo.slice(0, 400)}`);
+        resultado.enviados += fatia.length;
+      } catch (erro) {
+        resultado.erros.push(erro instanceof Error ? erro.message : String(erro));
+        resultado.descartados += fatia.length;
+        conta(resultado.motivos, "erro na Conversions API");
+      }
     }
   }
   return resultado;

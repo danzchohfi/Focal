@@ -62,7 +62,11 @@ export type RegistroLead = {
   telefone?: string;
   /** E.164 sem `+` — chave de join com o CRM. */
   telefoneNormalizado?: string;
+  /** SHA-256 do e-mail no formato da Meta (trim + minúsculas). */
   emailSha256?: string;
+  /** SHA-256 do e-mail no formato do Google (regra do Gmail aplicada). */
+  emailSha256Google?: string;
+  /** SHA-256 do telefone no formato da Meta (só dígitos). */
   telefoneSha256?: string;
   /** Chaves determinísticas de identidade (`tel:…`, `email:…`). */
   chaves: string[];

@@ -5,6 +5,7 @@ import {
   chavesIdentidade,
   hasheiaIdentidade,
   normalizaEmail,
+  normalizaEmailGoogle,
   normalizaNome,
   normalizaTelefone,
   sha256,
@@ -56,6 +57,12 @@ describe("e-mail", () => {
     assert.equal(normalizaEmail("sem-arroba"), undefined);
   });
 
+  it("normalização do Google aplica a regra do Gmail só no Gmail", () => {
+    assert.equal(normalizaEmailGoogle("Jo.ao+imovel@Gmail.com"), "joao@gmail.com");
+    assert.equal(normalizaEmailGoogle("jo.ao+x@focalinc.com.br"), "jo.ao+x@focalinc.com.br");
+    assert.equal(normalizaEmailGoogle("invalido"), undefined);
+  });
+
   it("chave interna ignora ponto e +tag no gmail", () => {
     assert.equal(chaveEmail("jo.ao+imovel@gmail.com"), "joao@gmail.com");
     // Fora do gmail o ponto é significativo e precisa ser mantido.
@@ -87,8 +94,25 @@ describe("hash de identidade", () => {
 
   it("não inventa hash quando o dado não veio", async () => {
     const hashes = await hasheiaIdentidade({ email: "invalido" });
-    assert.equal(hashes.emailSha256, undefined);
+    assert.equal(hashes.emailSha256Meta, undefined);
+    assert.equal(hashes.emailSha256Google, undefined);
     assert.equal(hashes.telefoneSha256Meta, undefined);
+  });
+
+  it("e-mail tem hash diferente por plataforma no Gmail", async () => {
+    // Regra do Google: no gmail.com, ponto e sufixo +tag saem antes do hash.
+    // A Meta só faz trim + minúsculas. Usar o mesmo hash nos dois lados zera o
+    // match de um dos dois, sem nenhum erro.
+    const hashes = await hasheiaIdentidade({ email: "Jo.ao+imovel@Gmail.com" });
+    assert.equal(hashes.emailSha256Google, await sha256("joao@gmail.com"));
+    assert.equal(hashes.emailSha256Meta, await sha256("jo.ao+imovel@gmail.com"));
+    assert.notEqual(hashes.emailSha256Google, hashes.emailSha256Meta);
+  });
+
+  it("fora do Gmail os dois hashes coincidem", async () => {
+    const hashes = await hasheiaIdentidade({ email: "jo.ao+imovel@focalinc.com.br" });
+    assert.equal(hashes.emailSha256Google, hashes.emailSha256Meta);
+    assert.equal(hashes.emailSha256Google, await sha256("jo.ao+imovel@focalinc.com.br"));
   });
 });
 

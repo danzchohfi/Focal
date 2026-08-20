@@ -1,9 +1,8 @@
-// Camada HTTP do CVCRM: autenticação, rate limit e as duas formas de chamada.
+// Camada HTTP do CVCRM: autenticação, rate limit, paginação e retentativa.
 //
-// Uma particularidade do CVDW obriga a sair do `fetch`: os parâmetros de
-// paginação e de carga incremental vão no CORPO JSON de uma requisição GET.
-// O `fetch` do Node recusa corpo em GET, então o CVDW usa `node:https`
-// diretamente. Os endpoints transacionais são `fetch` normal.
+// Duas APIs com convenções próprias — a transacional (/api/v1/...) e o CVDW
+// (/api/v1/cvdw/...) — e pelo menos quatro estilos de paginação diferentes
+// entre os endpoints. Tudo isso fica escondido aqui.
 
 import { INTERVALO_MS, type ConfigCvcrm } from "./config";
 
@@ -78,10 +77,14 @@ export async function chamadaRest(
 }
 
 /**
- * Chamada ao CVDW: GET com corpo JSON.
+ * Chamada ao CVDW.
  *
- * `fetch` rejeita corpo em GET, então esta função desce para `node:https`.
- * Só roda no runtime Node (jobs de sincronização), nunca no Edge.
+ * O OpenAPI oficial declara `pagina`, `registros_por_pagina`,
+ * `a_partir_data_referencia` e `ate_data_referencia` como parâmetros de QUERY.
+ * O CLI PHP de terceiros manda no corpo de um GET, mas isso é peculiaridade
+ * dele: GET com corpo é frágil (o `fetch` do Node recusa, e proxy/CDN pode
+ * descartar em silêncio — devolvendo a primeira página sem filtro em vez de
+ * erro, o que é pior que falhar).
  */
 export async function chamadaCvdw(
   config: ConfigCvcrm,
@@ -91,45 +94,27 @@ export async function chamadaCvdw(
 ): Promise<unknown> {
   const { ROTAS } = await import("./config");
   const rota = ROTAS.cvdw(recurso);
-  const alvo = new URL(`${config.baseUrl}${rota}`);
-  const corpoEnvio = JSON.stringify(parametros);
-  const https = await import("node:https");
+  const params = new URLSearchParams();
+  for (const [chave, valor] of Object.entries(parametros)) {
+    if (valor !== undefined && valor !== null && valor !== "") params.set(chave, String(valor));
+  }
+  const caminho = params.size ? `${rota}?${params}` : rota;
 
   for (let tentativa = 1; ; tentativa++) {
     await respeitaLimite("cvdw");
+    const resposta = await fetch(`${config.baseUrl}${caminho}`, { headers: cabecalhos(config) });
+    const corpo = await resposta.text();
 
-    const { status, corpo } = await new Promise<{ status: number; corpo: string }>(
-      (resolve, reject) => {
-        const requisicao = https.request(
-          {
-            hostname: alvo.hostname,
-            port: alvo.port || 443,
-            path: alvo.pathname + alvo.search,
-            method: "GET",
-            headers: {
-              ...cabecalhos(config),
-              "Content-Length": Buffer.byteLength(corpoEnvio),
-            },
-          },
-          (resposta) => {
-            let dados = "";
-            resposta.setEncoding("utf8");
-            resposta.on("data", (parte) => (dados += parte));
-            resposta.on("end", () => resolve({ status: resposta.statusCode ?? 0, corpo: dados }));
-          }
-        );
-        requisicao.on("error", reject);
-        requisicao.write(corpoEnvio);
-        requisicao.end();
-      }
+    if (resposta.status === 204) return undefined;
+    if (resposta.ok) return interpreta(corpo, rota);
+
+    const recuperavel = resposta.status === 429 || resposta.status >= 500;
+    if (!recuperavel || tentativa >= tentativas) {
+      throw new ErroCvcrm(resposta.status, rota, corpo);
+    }
+    await new Promise((resolve) =>
+      setTimeout(resolve, resposta.status === 429 ? 60_000 : 2_000 * tentativa)
     );
-
-    if (status === 204) return undefined;
-    if (status >= 200 && status < 300) return interpreta(corpo, rota);
-
-    const recuperavel = status === 429 || status >= 500;
-    if (!recuperavel || tentativa >= tentativas) throw new ErroCvcrm(status, rota, corpo);
-    await new Promise((resolve) => setTimeout(resolve, status === 429 ? 60_000 : 2_000 * tentativa));
   }
 }
 

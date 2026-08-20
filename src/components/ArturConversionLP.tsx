@@ -10,7 +10,8 @@ import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
 import { aoClicarWhatsApp, comCodigo, useHrefWhatsApp } from "@/lib/atribuicao/whatsapp";
-import { obtemRef } from "@/lib/atribuicao/captura";
+import { capturaAtribuicao, obtemAtribuicao, obtemRef } from "@/lib/atribuicao/captura";
+import { registraEvento } from "@/lib/atribuicao/eventos";
 import { getProjeto } from "@/data/projetos";
 
 // ── Dados comerciais da campanha ─────────────────────────────────────────
@@ -76,6 +77,8 @@ function ShortForm() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    // Sem isto o lead chega ao servidor sem origem e nasce órfão de campanha.
+    const atribuicao = obtemAtribuicao() ?? capturaAtribuicao();
     setEstado("enviando");
     try {
       const res = await fetch("/api/lead", {
@@ -88,6 +91,7 @@ function ShortForm() {
           quando: data.quando,
           contexto: "Artur 73",
           origem: window.location.pathname,
+          atribuicao,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
@@ -95,6 +99,7 @@ function ShortForm() {
       setEstado("ok");
     } catch {
       track("submit_form", { contexto: "Artur 73", canal: "whatsapp_fallback" });
+      registraEvento("formulario", { contexto: "Artur 73" });
       setWaHref(
         comCodigo(
         waLink(

@@ -49,7 +49,7 @@ export function avaliaConversaoGoogle(conversao: ConversaoOffline) {
   if (clickIds.length > 1) {
     return { pode: false as const, motivo: "mais de um click id (o Google aceita exatamente um)" };
   }
-  const temIdentidade = !!(conversao.emailSha256 || conversao.telefoneSha256Google);
+  const temIdentidade = !!(conversao.emailSha256Google || conversao.telefoneSha256Google);
   if (!clickIds.length && !temIdentidade) {
     return { pode: false as const, motivo: "sem gclid e sem identidade hasheada" };
   }
@@ -81,7 +81,9 @@ function montaEvento(conversao: ConversaoOffline) {
   // Cada UserIdentifier carrega UM atributo: e-mail e telefone precisam ir em
   // entradas separadas do array, senão o Google zera os demais.
   const userIdentifiers: Record<string, unknown>[] = [];
-  if (conversao.emailSha256) userIdentifiers.push({ emailAddress: conversao.emailSha256 });
+  if (conversao.emailSha256Google) {
+    userIdentifiers.push({ emailAddress: conversao.emailSha256Google });
+  }
   if (conversao.telefoneSha256Google) {
     userIdentifiers.push({ phoneNumber: conversao.telefoneSha256Google });
   }

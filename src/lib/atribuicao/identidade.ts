@@ -63,24 +63,47 @@ export function variantesTelefone(bruto: string | null | undefined): string[] {
   return [...saida];
 }
 
-/** Lowercase + trim — a normalização que Google e Meta exigem. */
+/** Lowercase + trim — é o que a Meta exige, e a base para a regra do Google. */
 export function normalizaEmail(bruto: string | null | undefined): string | undefined {
   if (!bruto) return undefined;
   const limpo = bruto.trim().toLowerCase();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(limpo) ? limpo : undefined;
 }
 
+/** Provedores que ignoram ponto e sufixo `+tag` no nome de usuário. */
+const IGNORAM_PONTO = ["gmail.com", "googlemail.com"];
+
 /**
- * Chave de e-mail para o join interno: remove pontos e sufixo `+tag` nos
- * provedores que os ignoram. NÃO usar para enviar às plataformas.
+ * Normalização de e-mail do Google Ads (enhanced conversions).
+ *
+ * A regra do Google NÃO é a mesma da Meta: além de trim + minúsculas, para
+ * **gmail.com e googlemail.com** é obrigatório remover os pontos e o sufixo
+ * `+tag` do usuário ANTES do hash. Para os demais domínios, ponto e `+tag` são
+ * significativos e precisam ser preservados. Aplicar a regra do Gmail a todo
+ * mundo — ou não aplicá-la ao Gmail — gera um hash diferente do que o Google
+ * espera, e o match simplesmente não acontece, sem nenhum erro.
+ */
+export function normalizaEmailGoogle(bruto: string | null | undefined): string | undefined {
+  const email = normalizaEmail(bruto);
+  if (!email) return undefined;
+  const [usuario, dominio] = email.split("@");
+  if (!IGNORAM_PONTO.includes(dominio)) return email;
+  return `${usuario.split("+")[0].replace(/\./g, "")}@${dominio}`;
+}
+
+/**
+ * Chave de e-mail para o JOIN INTERNO. Mais agressiva que a do Google: remove
+ * o sufixo `+tag` em qualquer domínio, porque aqui um falso positivo custa
+ * pouco e um falso negativo custa uma venda sem origem. NÃO usar para enviar
+ * às plataformas — para isso existem `normalizaEmail` (Meta) e
+ * `normalizaEmailGoogle` (Google).
  */
 export function chaveEmail(bruto: string | null | undefined): string | undefined {
   const email = normalizaEmail(bruto);
   if (!email) return undefined;
   const [usuario, dominio] = email.split("@");
   const semTag = usuario.split("+")[0];
-  const ignoramPonto = ["gmail.com", "googlemail.com"];
-  return `${ignoramPonto.includes(dominio) ? semTag.replace(/\./g, "") : semTag}@${dominio}`;
+  return `${IGNORAM_PONTO.includes(dominio) ? semTag.replace(/\./g, "") : semTag}@${dominio}`;
 }
 
 /** Nome próprio normalizado (sem acento, minúsculo) — usado no matching avançado. */
@@ -106,8 +129,10 @@ export async function sha256(valor: string): Promise<string> {
 }
 
 export type IdentidadeHasheada = {
-  /** SHA-256 do e-mail normalizado. */
-  emailSha256?: string;
+  /** SHA-256 do e-mail com a normalização do Google (regra do Gmail aplicada). */
+  emailSha256Google?: string;
+  /** SHA-256 do e-mail com trim + minúsculas (padrão Meta CAPI). */
+  emailSha256Meta?: string;
   /** SHA-256 do telefone em E.164 COM `+` (padrão Google Ads). */
   telefoneSha256Google?: string;
   /** SHA-256 do telefone em E.164 SEM `+` (padrão Meta CAPI). */
@@ -116,7 +141,13 @@ export type IdentidadeHasheada = {
   sobrenomeSha256?: string;
 };
 
-/** Hasheia o contato uma única vez nos formatos que cada plataforma espera. */
+/**
+ * Hasheia o contato nos formatos que cada plataforma espera.
+ *
+ * São quatro hashes e não dois porque as duas plataformas divergem nas DUAS
+ * pontas: telefone (Google com `+`, Meta sem) e e-mail (Google normaliza Gmail,
+ * Meta não). Mandar o hash errado não dá erro — só zera o match.
+ */
 export async function hasheiaIdentidade(contato: {
   email?: string | null;
   telefone?: string | null;
@@ -124,8 +155,13 @@ export async function hasheiaIdentidade(contato: {
 }): Promise<IdentidadeHasheada> {
   const saida: IdentidadeHasheada = {};
 
-  const email = normalizaEmail(contato.email);
-  if (email) saida.emailSha256 = await sha256(email);
+  const emailMeta = normalizaEmail(contato.email);
+  if (emailMeta) saida.emailSha256Meta = await sha256(emailMeta);
+  const emailGoogle = normalizaEmailGoogle(contato.email);
+  if (emailGoogle) {
+    saida.emailSha256Google =
+      emailGoogle === emailMeta ? saida.emailSha256Meta : await sha256(emailGoogle);
+  }
 
   const telefone = normalizaTelefone(contato.telefone);
   if (telefone) {

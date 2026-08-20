@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { avaliaConversaoGoogle, JANELA_GCLID_DIAS, JANELA_IDENTIDADE_DIAS } from "./google/conversoes";
-import { avaliaConversaoMeta, montaEventoMeta, seraAtribuido } from "./meta/conversoes";
+import {
+  avaliaConversaoMeta,
+  JANELA_OFFLINE_DIAS,
+  montaEventoMeta,
+  seraAtribuido,
+} from "./meta/conversoes";
 import type { ConversaoOffline } from "./tipos";
 
 const AGORA = Date.now();
@@ -33,7 +38,7 @@ describe("janela do Google", () => {
   it("sem click id a janela cai para 63 dias", () => {
     const semClique = conversao({
       gclid: undefined,
-      emailSha256: "a".repeat(64),
+      emailSha256Google: "a".repeat(64),
       tsClique: dias(70),
     });
     const fora = avaliaConversaoGoogle(semClique);
@@ -73,9 +78,14 @@ describe("janela da Meta", () => {
   const paraMeta = (extra: Partial<ConversaoOffline> = {}) =>
     conversao({ fbc: "fb.1.1756000000000.IwAR123", ...extra });
 
-  it("aceita venda offline de até 62 dias", () => {
-    assert.equal(avaliaConversaoMeta(paraMeta({ ts: dias(40) })).pode, true);
-    assert.equal(avaliaConversaoMeta(paraMeta({ ts: dias(80) })).pode, false);
+  it("por padrão só aceita evento dos últimos 7 dias", () => {
+    // Conservador de propósito: a doc garante erro do REQUEST INTEIRO acima de
+    // 7 dias e não diz que physical_store dispensa a regra. Só com o toggle
+    // "Allow Historical Conversion Uploads" ligado (META_JANELA_HISTORICA=1) a
+    // janela sobe para 90.
+    assert.equal(JANELA_OFFLINE_DIAS, 7);
+    assert.equal(avaliaConversaoMeta(paraMeta({ ts: dias(3) })).pode, true);
+    assert.equal(avaliaConversaoMeta(paraMeta({ ts: dias(40) })).pode, false);
   });
 
   it("evento de CTWA tem teto de 7 dias", () => {
@@ -89,8 +99,9 @@ describe("janela da Meta", () => {
   });
 
   it("separa 'pode enviar' de 'vai ser atribuído'", () => {
-    // Envio aceito (35 dias < 62) mas fora da janela de atribuição de 7 dias.
-    const tardia = conversao({ ts: dias(35), tsClique: dias(120), fbc: "fb.1.1.A" });
+    // O evento é recente (fecha hoje), mas o clique que o originou tem 120
+    // dias: entra como sinal de valor e não como conversão atribuída.
+    const tardia = conversao({ ts: dias(1), tsClique: dias(120), fbc: "fb.1.1.A" });
     assert.equal(avaliaConversaoMeta(tardia).pode, true);
     assert.equal(seraAtribuido(tardia), false);
     assert.equal(seraAtribuido(conversao({ ts: dias(1), tsClique: dias(3), fbc: "fb.1.1.A" })), true);

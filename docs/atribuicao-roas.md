@@ -88,12 +88,19 @@ reemitido pelo servidor a cada navegação (`src/proxy.ts`) com validade
 deslizante de 180 dias. O payload fica no `localStorage` e, do lado do
 servidor, na tabela de toques indexada pelo código.
 
-A reemissão pelo servidor não é preciosismo: no Safari, cookie escrito por
-`document.cookie` **expira em 7 dias** (e em 24 h quando a URL traz `gclid` ou
-`fbclid`). Num ciclo de 180 dias isso apagaria a origem antes da venda. Só
-`Set-Cookie` de origem first-party escapa do corte — e o `proxy.ts` não roda no
-build estático do GitHub Pages, **então a produção precisa estar em Vercel ou
-Node**, não em Pages.
+A reemissão pelo servidor não é preciosismo. No Safari, o ITP **apaga todo
+cookie escrito por JavaScript** (e o resto do storage gravável por script)
+após 7 dias **sem interação** com o site; e a validade cai para 24 h quando a
+navegação veio de um domínio classificado como rastreador com querystring — o
+caso de um link de anúncio. Num ciclo de 180 dias, quem some por dois meses
+perde a origem. O `Set-Cookie` first-party não é apagado por essa purga,
+sobrevive a JS bloqueado e não cai para 24 h em link decorado.
+
+O `proxy.ts` **não roda no build estático** do GitHub Pages — e as rotas
+`.server.ts` também não são geradas lá. Ou seja, no Pages não existe nem o
+cookie de 180 dias, nem `/api/lead`, nem `/api/atribuicao`, nem
+`/ir/whatsapp`, nem o webhook do CVCRM. **A produção precisa estar em Vercel ou
+Node.**
 
 ---
 
@@ -288,10 +295,15 @@ Sem isso, o `gclid` gravado no CRM vira um identificador órfão.
 **não exige App Review**. A leitura de custo (Insights) exige `ads_read` num
 system user do Business Manager.
 
-Regras que derrubam o match em silêncio quando ignoradas:
+Regras que derrubam o match em silêncio quando ignoradas — e as duas
+plataformas divergem nas **duas** pontas, por isso o pipeline guarda quatro
+hashes e não dois:
 
-- e-mail e telefone: SHA-256 **depois** de normalizar (telefone só dígitos,
-  **sem `+`**, com código do país — o oposto do Google, que exige o `+`);
+- **telefone:** Meta quer só dígitos, **sem `+`**; Google quer E.164 **com
+  `+`**;
+- **e-mail:** Meta quer só trim + minúsculas; Google exige, **apenas para
+  `gmail.com` e `googlemail.com`**, remover os pontos e o sufixo `+tag` do
+  usuário antes do hash — e preservá-los em qualquer outro domínio;
 - `fbc`, `fbp` e `ctwa_clid` **não são hasheados**;
 - `_fbc` tem o formato `fb.{índice}.{ms}.{fbclid}`, com o índice contando os
   rótulos abaixo do sufixo público (`focalinc.com.br` = 1);
@@ -301,16 +313,31 @@ Regras que derrubam o match em silêncio quando ignoradas:
 ### 6.2 A conversa honesta sobre a janela
 
 A Meta decide a atribuição pelo **intervalo entre o clique e o `event_time`** —
-não pelo momento do upload. A janela máxima hoje é **7 dias de clique** (as
-janelas de 28 dias e de visualização foram removidas ao longo de 2026). Uma
-venda fechada 120 dias depois do clique é **aceita** pela API, mas **não
-aparece atribuída ao anúncio no Ads Manager**.
+não pelo momento do upload. A janela de **otimização** é de 7 dias de clique
+(as janelas de visualização de 7 e 28 dias foram removidas em 12/01/2026 e hoje
+retornam vazio, sem erro). Para **relatório**, o clique de 28 dias continua
+disponível na Insights API (`action_attribution_windows=28d_click`) — é a
+janela mais longa que a Meta ainda mostra, e vale usá-la.
 
-Vale ligar os dois toggles do Events Manager (*Extend Attribution Uploads* e
-*Allow Historical Conversion Uploads*, ambos para eventos de loja física), mas
-o teto deles é 90 dias — ainda abaixo do ciclo. **Alinhe isso com o cliente na
-largada**: o Gerenciador da Meta nunca vai mostrar o ROAS de venda; o relatório
-deste repositório vai.
+Sobre o prazo de **envio**, a doc é ambígua: diz que qualquer `event_time` com
+mais de 7 dias faz a Meta devolver erro para a **requisição inteira**, e no
+mesmo parágrafo que eventos de loja física "devem ser enviados em até 62 dias".
+Como a segunda frase não dispensa a primeira, o padrão aqui é conservador — 7
+dias — e o pipeline separa os lotes por idade, para que uma rejeição do
+histórico não leve junto os eventos recentes. Com o toggle *Allow Historical
+Conversion Uploads* confirmado no Events Manager, ligue
+`META_JANELA_HISTORICA=1` e a janela sobe para 90 dias.
+
+Nada disso chega aos 120+ dias do ciclo. **Alinhe com o cliente na largada:** o
+Gerenciador da Meta nunca vai mostrar o ROAS de venda; o relatório deste
+repositório vai.
+
+> Existe um caminho oficial alternativo para eventos de CRM
+> (`action_source: system_generated` + `user_data.lead_id` +
+> `custom_data.event_source: "crm"`), mas ele exige o `lead_id` de um formulário
+> instantâneo da Meta. Como os leads da Focal nascem no site e não em Lead Ads,
+> o pipeline usa `physical_store` para a venda assinada. Se um dia houver
+> campanha de formulário instantâneo, esse é o caminho a adotar para ela.
 
 ### 6.3 Clique-para-WhatsApp
 
@@ -451,6 +478,11 @@ primeira reunião de resultado:
   reconciliado se o contato coincidir.
 - **Enhanced conversions só por PII** casam 40–50% dos casos — por isso vale o
   esforço de persistir o `gclid`.
+- **Celular antigo de São Paulo com prefixo 5.** O casamento por telefone gera
+  a variante sem o 9º dígito para números que começam em 6–9 (a faixa móvel do
+  plano de numeração). Celulares legados da Grande São Paulo cujo número local
+  começa com 5 ficam de fora: gerar a variante para eles criaria colisão com
+  telefone fixo, que também começa com 5. É uma perda pequena e deliberada.
 - **Cobertura realista esperada** nos primeiros 90 dias: alta para formulário
   (o payload vai completo), média para WhatsApp saindo do site (depende do
   texto sobreviver e da Laís gravar), baixa para clique-para-WhatsApp enquanto

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resolveAtribuicao } from "@/lib/atribuicao/servidor";
+import { refDoCookie, resolveAtribuicao } from "@/lib/atribuicao/servidor";
 import { chavesIdentidade, hasheiaIdentidade, normalizaEmail, normalizaTelefone } from "@/lib/atribuicao/identidade";
 import type { PayloadLead } from "@/lib/atribuicao/tipos";
 import { toqueParaRegistro } from "@/lib/dados/mapeamento";
@@ -25,6 +25,10 @@ export async function POST(request: Request) {
 
   const cookies = request.headers.get("cookie");
   const atribuicao = resolveAtribuicao(corpo.atribuicao, cookies);
+  // Se o formulário não mandou o objeto completo, o código do cookie ainda
+  // liga este lead aos toques já gravados por /api/atribuicao e /ir/whatsapp —
+  // é o que impede um lead de nascer órfão de origem.
+  const ref = atribuicao?.ref ?? refDoCookie(cookies);
   const recebidoEm = new Date().toISOString();
 
   const email = normalizaEmail(corpo.email);
@@ -36,7 +40,6 @@ export async function POST(request: Request) {
     nome: corpo.nome,
   });
 
-  const ref = atribuicao?.ref;
   // Mesma pessoa reenviando o formulário atualiza a linha em vez de duplicar.
   const id = `${ref ?? "sem-ref"}|${chaves[0] ?? email ?? recebidoEm}`;
 
@@ -48,7 +51,8 @@ export async function POST(request: Request) {
     email,
     telefone: String(corpo.telefone).slice(0, 40),
     telefoneNormalizado: telefone,
-    emailSha256: hashes.emailSha256,
+    emailSha256: hashes.emailSha256Meta,
+    emailSha256Google: hashes.emailSha256Google,
     telefoneSha256: hashes.telefoneSha256Meta,
     chaves,
     contexto: corpo.contexto,

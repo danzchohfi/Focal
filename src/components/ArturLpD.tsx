@@ -9,7 +9,7 @@ import ObraScroll from "./lpc/ObraScroll";
 import IconeD, { type IconeDNome } from "./lpd/IconeD";
 import BairroExplorer from "./lpd/BairroExplorer";
 import CartoesMorar from "./lpd/CartoesMorar";
-import TowerLines from "./lpd/TowerLines";
+import HeroFilm from "./lpd/HeroFilm";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
@@ -76,6 +76,70 @@ function Cta({
         <path d="M3.5 3.5c4.7-4.7 12.3-4.7 17 0a12 12 0 0 1-13.8 19.3l-5.8.7a.4.4 0 0 1-.4-.4l.7-5.8A12 12 0 0 1 3.5 3.5zm10 10.2-.9 1.2a9.8 9.8 0 0 1-3.5-3.5l1.2-.9a.8.8 0 0 0 .2-.9l-1.3-2.9a.8.8 0 0 0-.9-.4l-2 .5a.8.8 0 0 0-.6.9A11.8 11.8 0 0 0 15.8 17.5a.8.8 0 0 0 .9-.6l.5-2a.8.8 0 0 0-.4-.9l-2.9-1.3a.8.8 0 0 0-.9.2z" />
       </svg>
       <span className="relative">{children}</span>
+    </a>
+  );
+}
+
+/**
+ * O filme institucional no YouTube, com a capa das mãos do arquiteto — o pai
+ * do cliente, autor do projeto. O iframe só entra depois do clique (página
+ * leve); sem JavaScript, o cartão é um link direto para o YouTube.
+ */
+function FilmeArquiteto() {
+  const [tocando, setTocando] = useState(false);
+
+  if (tocando) {
+    return (
+      <div className="relative aspect-video overflow-hidden rounded-lg shadow-[0_24px_80px_-28px_rgba(18,71,95,.45)]" style={{ background: "#0D3549" }}>
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/6AClY3bzMb8?autoplay=1&rel=0"
+          title="O filme do Artur 73 — pelo arquiteto do projeto"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 h-full w-full border-0"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href="https://youtu.be/6AClY3bzMb8"
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => {
+        e.preventDefault();
+        setTocando(true);
+        track("play_filme_arquiteto", { posicao: "obra" });
+      }}
+      className="group grid overflow-hidden rounded-lg shadow-[0_24px_80px_-28px_rgba(18,71,95,.45)] md:grid-cols-[1.05fr_1fr]"
+      style={{ background: "#0D3549" }}
+    >
+      <figure className="relative m-0 aspect-[4/3] overflow-hidden md:aspect-auto md:min-h-[400px]">
+        {/* eslint-disable-next-line @next/next/no-img-element -- export estático sem otimizador */}
+        <img
+          src={asset("/a73d/arquiteto.webp")}
+          alt="A mão do arquiteto desenhando o projeto a nanquim"
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+        />
+      </figure>
+      <div className="flex flex-col justify-between gap-10 p-7 text-white md:p-10">
+        <p className="kicker" style={{ color: "#BCD7E6" }}>
+          O filme do projeto
+        </p>
+        <p className="din-book max-w-[20ch] text-[clamp(22px,2.4vw,30px)] leading-[1.25]">
+          Do primeiro traço à obra — pelo arquiteto responsável.
+        </p>
+        <span className="din inline-flex items-center gap-4 text-[13px] uppercase tracking-[0.14em]">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 transition-colors duration-200 group-hover:bg-white group-hover:text-[#12475F]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <path d="M8 5.5v13l11-6.5z" />
+            </svg>
+          </span>
+          Assistir ao filme
+        </span>
+      </div>
     </a>
   );
 }
@@ -297,35 +361,93 @@ export default function ArturLpD() {
 
   return (
     <div ref={raiz} className="lp-b relative" style={{ background: COR.off, color: COR.navy }}>
-      {/* ───────────────── Topo ───────────────── */}
+      {/* ───────────────── Topo ─────────────────
+          Mesmos itens do site atual (que o cliente gosta): link de
+          empreendimentos + telefone, e-mail e WhatsApp — redesenhados na
+          identidade nova. No hover, o botão de telefone revela o número. */}
       <header
         className="sticky top-0 z-40 border-b backdrop-blur-md"
         style={{ background: "rgba(246,244,239,.92)", borderColor: "rgba(18,71,95,.12)" }}
       >
-        <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-3.5 md:px-10">
-          <Link href="/" aria-label="Focal Inc — Home">
+        <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-3 px-5 py-3 md:px-10">
+          <Link href="/" aria-label="Focal Inc — Home" className="shrink-0">
             <Logo tone="preto" className="h-5 w-auto md:h-6" />
           </Link>
-          <div className="flex items-center gap-4">
-            <a href={site.telefoneHref} className="hidden text-[14px] opacity-75 transition-opacity hover:opacity-100 md:block">
-              {site.telefone}
+          <div className="flex items-center gap-2 md:gap-2.5">
+            <Link
+              href="/#empreendimentos"
+              className="din mr-1 hidden items-center gap-1.5 text-[12.5px] uppercase tracking-[0.14em] opacity-80 transition-opacity hover:opacity-100 lg:inline-flex"
+            >
+              <span aria-hidden className="text-[15px] leading-none" style={{ color: COR.pinho }}>
+                +
+              </span>
+              Empreendimentos
+            </Link>
+            <span aria-hidden className="mr-1 hidden h-5 w-px lg:block" style={{ background: "rgba(18,71,95,.2)" }} />
+
+            <a
+              href={site.telefoneHref}
+              onClick={() => track("clique_telefone", { posicao: "topo" })}
+              aria-label={`Telefone: ${site.telefone}`}
+              className="group din inline-flex h-10 w-10 items-center justify-center gap-2 rounded-full border text-[11.5px] uppercase tracking-[0.12em] transition-colors duration-200 hover:bg-[#12475F] hover:text-[#F6F4EF] md:w-auto md:px-4"
+              style={{ borderColor: "rgba(18,71,95,.3)" }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden className="shrink-0">
+                <path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />
+              </svg>
+              <span className="hidden min-w-[104px] text-center md:inline">
+                <span className="group-hover:hidden">Telefone</span>
+                <span className="hidden group-hover:inline" style={{ letterSpacing: "0.04em" }}>
+                  {site.telefone}
+                </span>
+              </span>
             </a>
-            <Cta posicao="topo" sobre="mais informações." className="px-5 py-2.5">
-              WhatsApp
+
+            <a
+              href={`mailto:${site.email}`}
+              onClick={() => track("clique_email", { posicao: "topo" })}
+              aria-label={`E-mail: ${site.email}`}
+              className="din inline-flex h-10 w-10 items-center justify-center gap-2 rounded-full border text-[11.5px] uppercase tracking-[0.12em] transition-colors duration-200 hover:bg-[#12475F] hover:text-[#F6F4EF] md:w-auto md:px-4"
+              style={{ borderColor: "rgba(18,71,95,.3)" }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden className="shrink-0">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="m3 7 9 6 9-6" />
+              </svg>
+              <span className="hidden md:inline">E-mail</span>
+            </a>
+
+            <Cta posicao="topo" sobre="mais informações." className="ml-1 px-3.5 py-2.5 sm:px-5">
+              <span className="hidden sm:inline">WhatsApp</span>
+              <span className="sr-only sm:hidden">WhatsApp</span>
             </Cta>
           </div>
         </div>
       </header>
 
       {/* ───────────────── Hero ───────────────── */}
-      <section data-hero className="relative overflow-hidden" style={{ background: COR.pastel }}>
-        <TowerLines cor={COR.navy} />
+      <section data-hero className="relative overflow-hidden" style={{ background: COR.navyFundo }}>
+        <HeroFilm />
+        {/* Véu para legibilidade do texto sobre o filme */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(78deg, rgba(9,38,53,.82) 0%, rgba(9,38,53,.55) 44%, rgba(9,38,53,.18) 78%, rgba(9,38,53,.05) 100%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-40"
+          style={{ background: "linear-gradient(0deg, rgba(9,38,53,.55), transparent)" }}
+        />
         <div className="relative z-10 mx-auto flex min-h-[calc(100svh-64px)] max-w-[1240px] flex-col justify-center px-5 py-16 md:px-10">
-          <p data-hero-fade className="kicker" style={{ color: COR.pinho }}>
+          <p data-hero-fade className="kicker" style={{ color: COR.pastel }}>
             R. Artur Azevedo, 73 · Pinheiros
           </p>
 
-          <h1 className="din mt-6 leading-[0.92] tracking-[-0.01em]">
+          <h1 className="din mt-6 leading-[0.92] tracking-[-0.01em] text-white">
             <span className="block overflow-hidden">
               <span data-hero-linha className="block text-[clamp(64px,13vw,180px)]">
                 ARTUR<sup className="ml-1 align-super text-[0.42em] tracking-[0.02em]">73</sup>
@@ -335,14 +457,14 @@ export default function ArturLpD() {
 
           <p
             data-hero-fade
-            className="din-book mt-6 max-w-[24ch] text-[clamp(22px,3vw,34px)] leading-[1.16]"
+            className="din-book mt-6 max-w-[24ch] text-[clamp(22px,3vw,34px)] leading-[1.16] text-white/95"
           >
             Perto de tudo, onde Pinheiros mostra seu melhor.
           </p>
 
           <div data-hero-fade className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
             {["81 e 88 m² · 2 suítes", "Studios NR de 52 m²", "Chaves em 2026"].map((c) => (
-              <span key={c} className="din text-[13px] uppercase tracking-[0.14em] opacity-70">
+              <span key={c} className="din text-[13px] uppercase tracking-[0.14em] text-white/70">
                 {c}
               </span>
             ))}
@@ -354,21 +476,18 @@ export default function ArturLpD() {
             </Cta>
             <a
               href="#filme"
-              className="cta inline-flex items-center justify-center gap-2 rounded-md border px-8 py-4 transition-colors duration-200 hover:bg-white/40"
-              style={{ borderColor: "rgba(18,71,95,.35)", color: COR.navy }}
+              className="cta inline-flex items-center justify-center gap-2 rounded-md border border-white/40 text-white transition-colors duration-200 hover:bg-white/15 px-8 py-4"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M8 5.5v13l11-6.5z" />
               </svg>
-              Ver o filme da obra
+              Ver por capítulos
             </a>
           </div>
 
-          <p data-hero-fade className="mt-6 text-[14px] opacity-70">
+          <p data-hero-fade className="mt-6 text-[14px] text-white/70">
             Residenciais a partir de{" "}
-            <span className="din text-[22px] opacity-100" style={{ color: COR.navy }}>
-              {comercial.precoResidencial}
-            </span>
+            <span className="din text-[22px] text-white">{comercial.precoResidencial}</span>
           </p>
         </div>
       </section>
@@ -552,42 +671,21 @@ export default function ArturLpD() {
       {/* ───────────── Obra: vídeo do arquiteto + galeria ───────────── */}
       <section className="py-24 md:py-32" style={{ background: COR.off }}>
         <div className="mx-auto max-w-[1240px] px-5 md:px-10">
-          <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-[1fr_1.15fr] md:gap-16">
-            {/* Vídeo vertical emoldurado */}
-            <div data-reveal className="mx-auto w-full max-w-[420px]">
-              <div
-                className="relative aspect-[9/16] overflow-hidden rounded-lg shadow-[0_24px_80px_-28px_rgba(18,71,95,.45)]"
-                style={{ background: COR.navyFundo }}
-              >
-                <video
-                  controls
-                  playsInline
-                  preload="none"
-                  poster={asset("/a73d/obra-poster.webp")}
-                  src={asset("/wp/Focal-Maio-2026-1.mp4")}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              </div>
-              <p className="mt-4 text-center text-[13px] opacity-60">
-                O arquiteto do projeto apresenta a obra · Maio/2026
-              </p>
-            </div>
+          <div data-reveal className="max-w-[58ch]">
+            <p className="kicker" style={{ color: COR.pinho }}>
+              A obra
+            </p>
+            <h2 className="din mt-4 text-[clamp(30px,4vw,50px)] leading-[1.08] tracking-[-0.015em]">
+              A obra, apresentada por quem a desenhou.
+            </h2>
+            <p className="mt-5 max-w-[46ch] text-[16px] leading-[1.75] opacity-75">
+              No filme, o arquiteto responsável pelo projeto apresenta o Artur 73 do primeiro
+              traço à obra. Entrega prevista para setembro de 2026.
+            </p>
+          </div>
 
-            <div>
-              <div data-reveal>
-                <p className="kicker" style={{ color: COR.pinho }}>
-                  A obra
-                </p>
-                <h2 className="din mt-4 text-[clamp(30px,4vw,50px)] leading-[1.08] tracking-[-0.015em]">
-                  A obra, apresentada por quem a desenhou.
-                </h2>
-                <p className="mt-5 max-w-[46ch] text-[16px] leading-[1.75] opacity-75">
-                  No vídeo, o arquiteto do Artur 73 percorre a obra e mostra o que já está de pé.
-                  Entrega prevista para setembro de 2026.
-                </p>
-              </div>
-
-            </div>
+          <div data-reveal className="mt-12">
+            <FilmeArquiteto />
           </div>
 
           {/* Galeria de fotos da obra */}
@@ -613,8 +711,8 @@ export default function ArturLpD() {
 
       {/* ───────────── Investidor (família azul profunda) ───────────── */}
       <section className="py-24 md:py-32" style={{ background: COR.navy }}>
-        <div className="mx-auto max-w-[1240px] px-5 md:px-10">
-          <div data-reveal className="max-w-[56ch]">
+        <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-12 px-5 md:grid-cols-[1.05fr_1fr] md:gap-16 md:px-10">
+          <div data-reveal>
             <p className="kicker text-[#BCD7E6]">Para investir</p>
             <h2 className="din mt-4 text-[clamp(32px,4.6vw,60px)] leading-[1.05] tracking-[-0.015em] text-white">
               O ativo certo na esquina certa.
@@ -623,13 +721,32 @@ export default function ArturLpD() {
               Inteligência arquitetônica que se traduz em retorno.
             </p>
             <p className="mt-6 max-w-[52ch] text-[16px] leading-[1.8] text-white/75">
-              Studios NR de 52 m² com 2 dormitórios a partir de {comercial.precoNR}, pensados para
-              locação de curta temporada no trecho mais disputado de Pinheiros. Valorização de{" "}
-              {comercial.valorizacaoNR} — Pinheiros consolidado, demanda consistente.
+              Studios NR pensados para locação de curta temporada no trecho mais disputado de
+              Pinheiros — bairro consolidado, demanda consistente, valorização contínua.
             </p>
             <Cta posicao="investir" sobre="falar sobre investimento nos studios NR." className="mt-9">
               Falar sobre investimento
             </Cta>
+          </div>
+
+          {/* Os números do ativo — ⚠️ mesmos dados de `comercial`, confirmar antes de escalar */}
+          <div data-reveal className="grid grid-cols-2 gap-3 md:gap-4">
+            {[
+              { v: comercial.precoNR, l: "Studios NR a partir de" },
+              { v: "~12% a.a.", l: "Valorização desde o lançamento (2023)" },
+              { v: "52 m²", l: "Com 2 dormitórios" },
+              { v: "2026", l: "Chaves na mão" },
+            ].map((t) => (
+              <div key={t.l} className="rounded-lg p-6 md:p-8" style={{ background: COR.navyFundo }}>
+                <p
+                  className="din text-[clamp(26px,2.8vw,38px)] leading-none tracking-[-0.01em] text-[#BCD7E6]"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                >
+                  {t.v}
+                </p>
+                <p className="mt-3 text-[13px] leading-snug text-white/60">{t.l}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

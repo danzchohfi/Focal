@@ -9,7 +9,6 @@ import ObraScroll from "./lpc/ObraScroll";
 import IconeD, { type IconeDNome } from "./lpd/IconeD";
 import BairroExplorer from "./lpd/BairroExplorer";
 import CartoesMorar from "./lpd/CartoesMorar";
-import ScrollFilm from "./lpd/ScrollFilm";
 import TowerLines from "./lpd/TowerLines";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
@@ -438,9 +437,6 @@ export default function ArturLpD() {
           </div>
         </div>
       </section>
-
-      {/* ───────────── Filme aéreo: a chegada ao bairro ───────────── */}
-      <ScrollFilm />
 
       {/* ───────────── Vizinhança (família verde) ───────────── */}
       <section className="py-24 md:py-32" style={{ background: COR.salvia, color: COR.pinho }}>

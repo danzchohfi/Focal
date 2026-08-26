@@ -1,77 +1,130 @@
-<!-- Esqueletos das páginas — copie o bloco que precisar e troque o conteúdo.
-     Requer base.css no <style> e o conteúdo de logo-vitamina.svg no início do body.
-     Fontes: <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;800&family=Inter:wght@400;500&display=swap"> -->
+<!doctype html>
+<!-- Esqueleto FEED-FIRST (3 páginas 16:9). Troque [PLACEHOLDERS], apague o
+     que a proposta não usa. Fontes: Google Fonts na web + @font-face file://
+     local pro print (as duas convivem — veja SKILL.md §3). -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Proposta — [CLIENTE]</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;800&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="base.css">
+</head>
+<body>
 
-<!-- 1 · CAPA: foto full-bleed p&b + véu + logo + selo + frase -->
-<section class="pagina capa">
-  <img src="FOTO-CAPA" alt="descreva a foto">
-  <div class="veu"></div>
-  <div class="interno">
-    <svg class="logo" role="img" aria-label="Vitamina Publicitária"><use href="#vp-logo"/></svg>
-    <div>
-      <p class="selo">Proposta · NOME DO CLIENTE · Mês 20XX</p>
-      <h1 style="margin-top:1.1rem">Frase curta. <span class="t">Com acento.</span></h1>
+<!-- ── 1 · CAPA: chamada + celular com o perfil/site do cliente ── -->
+<section class="pagina">
+  <div class="glow glow-a"></div><div class="glow glow-b"></div>
+  <div class="wrap">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div class="wordmark" style="font-size:30px">vitamina<span class="dot">.</span></div>
+      <span class="tag-prop"><i></i>Proposta — [CLIENTE]</span>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center;">
+      <div style="flex:1;">
+        <div class="eyebrow">[SERVIÇO · PERÍODO]</div>
+        <h1>Posicione<span class="acc">.</span><br>Ou você vira preço<span class="acc">.</span></h1>
+        <div class="chips" style="margin-top:22px;">
+          <span class="chip"><i></i>[Frente 1]</span>
+          <span class="chip"><i></i>[Frente 2]</span>
+        </div>
+        <p style="margin-top:24px; font-size:13px; color:var(--dim);">[Mês de Ano]</p>
+      </div>
+      <div class="phone" style="width:290px; height:620px; transform:rotate(-3deg);">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="topbar"><span class="sym">‹</span><span>@[cliente]</span><span class="sym">⋯</span></div>
+          <div class="profhead">
+            <div class="ring"><div class="ava">[XX]</div></div>
+            <div class="stats">
+              <div class="stat"><b>···</b><span>publicações</span></div>
+              <div class="stat"><b>···</b><span>seguidores</span></div>
+              <div class="stat"><b>···</b><span>seguindo</span></div>
+            </div>
+          </div>
+          <div class="profbtns"><div class="btn-seg">Seguir</div><div class="btn-msg">Mensagem</div></div>
+          <div class="grid">
+            <!-- 6-9 células: capas de vídeo do portfólio (file:// no print,
+                 data URI no artifact) + 1 célula .cell-brand com "v." -->
+            <div class="cell"><img src="[CAPA-1.jpg]" alt=""></div>
+            <div class="cell cell-brand"><span>v.</span></div>
+            <div class="cell"><img src="[CAPA-2.jpg]" alt=""></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- 2 · DUPLA: conteúdo à esquerda, foto sangrada à direita (.espelho inverte) -->
-<section class="pagina dupla">
-  <div class="interno">
-    <p class="eyebrow">01 · Nome da seção</p>
-    <div>
-      <h2>Título curto.</h2>
-      <p class="linha">Uma linha de apoio, no máximo duas.</p>
-      <!-- citações do cliente: -->
-      <div class="chips">
-        <span class="chip">“Fala literal do cliente”</span>
-        <span class="chip">“Outra fala”</span>
-      </div>
-    </div>
-    <!-- tabela de valores: principal com destaque, alternativa discreta -->
-    <div>
-      <div class="valores">
-        <div class="valor destaque">
-          <span class="q">Frente principal<small>descrição em uma linha.</small></span>
-          <span class="p">R$ 10.000</span>
+<!-- ── 2 · ESCOPO: itens numerados + celular com badges ── -->
+<section class="pagina">
+  <div class="glow glow-a"></div><div class="glow glow-b"></div>
+  <div class="wrap">
+    <div style="display:flex; gap:56px; flex:1;">
+      <div style="width:672px; display:flex; flex-direction:column;">
+        <div class="eyebrow">Escopo desta proposta · [período]</div>
+        <h2>[Serviço]<span class="acc">.</span></h2>
+        <p class="lead">[Uma linha de contexto — de onde vem a base do trabalho.]</p>
+        <div class="items" style="margin-top:16px;">
+          <div class="item"><div class="num">01</div><div><h3>[Entrega 1]</h3><p>[Uma linha. Com número e formato: "30 capas/posts por mês, feed 4:5 e stories 9:16".]</p></div></div>
+          <div class="item"><div class="num">02</div><div><h3>[Entrega 2]</h3><p>[Uma linha.]</p></div></div>
+          <div class="item"><div class="num">03</div><div><h3>[Entrega 3]</h3><p>[Uma linha.]</p></div></div>
         </div>
-        <div class="valor menor">
-          <span class="q">Alternativa discreta, em texto pequeno.</span>
-          <span class="p">R$ 4.500</span>
+        <div class="fora" style="margin-top:auto;">
+          <h4>Não faz parte desta frente:</h4>
+          <ul>
+            <li><i></i>[Exclusão específica — veja o checklist no SKILL.md §5]</li>
+            <li><i></i>[Exclusão específica]</li>
+          </ul>
+          <p class="mais"><b>São frentes adicionais</b> — qualquer uma delas, a gente cota à parte.</p>
         </div>
       </div>
-      <p class="cond"><b>À vista no Pix.</b> Ou no cartão, em até 12×, com a taxa da
-      operadora por conta do cliente.</p>
-      <p class="nota">Âncora de valor opcional (ex.: no modelo tradicional, custa R$ 50–80 mil).</p>
+      <div style="flex:1; display:flex; align-items:center; justify-content:center; position:relative;">
+        <div class="phone" style="width:296px; height:600px; position:relative;">
+          <span class="badge" style="top:93px;">01</span>
+          <span class="badge" style="top:290px;">02</span>
+          <span class="badge" style="top:430px;">03</span>
+          <div class="screen"><div class="notch"></div><!-- perfil mockado --></div>
+        </div>
+      </div>
     </div>
   </div>
-  <figure><img src="FOTO-LATERAL" alt="descreva a foto"></figure>
+  <div class="pgtag">[CLIENTE] · 02</div>
 </section>
 
-<!-- 2b · variação: screenshot de site como "celular flutuando" (figure.tela) -->
-<section class="pagina dupla">
-  <div class="interno"><!-- ... --></div>
-  <figure class="tela"><img src="SCREENSHOT-MOBILE" alt="a página no celular"></figure>
-</section>
-
-<!-- 3 · GRID de pilares/passos (use .valores com várias linhas, ou monte grid próprio
-     com .eyebrow numerado por item — mantenha 2 colunas no máximo em PDF) -->
-
-<!-- 4 · FECHO: link de aprovação OU assinaturas -->
-<section class="pagina dupla espelho">
-  <div class="interno">
-    <p class="eyebrow">Próximo passo</p>
-    <div>
-      <h2>Aprovar é um clique.</h2>
-      <p class="demo"><a href="LINK-DA-PROPOSTA-OU-DEMO">link visível e clicável</a></p>
+<!-- ── 3 · INVESTIMENTO: valor gigante + no máx. 2 opções + chat ── -->
+<section class="pagina">
+  <div class="glow glow-a"></div><div class="glow glow-b"></div>
+  <div class="wrap">
+    <div class="stories">
+      <span class="story"><span class="ph"><img src="[CAPA-1.jpg]" alt=""></span></span>
+      <span class="story"><span class="ph"><img src="[CAPA-2.jpg]" alt=""></span></span>
+      <span class="plus">+</span>
     </div>
-    <div class="assina">
-      <div><p class="quem">NOME DO CLIENTE</p><p class="quando">Nome, opções e data</p></div>
+    <div style="display:flex; gap:64px; flex:1; align-items:center; margin-top:16px;">
+      <div style="width:640px;">
+        <div class="eyebrow">Investimento</div>
+        <div style="margin-top:14px; font-family:var(--disp); font-weight:700; font-size:30px; letter-spacing:-.02em;">[Serviço · período]</div>
+        <div class="gvalor" style="margin-top:6px;">R$ <span class="n">[0.000]</span><span class="per">/mês</span></div>
+        <div style="margin-top:20px; display:flex; flex-direction:column; align-items:flex-start; gap:9px;">
+          <span class="pill on"><i></i>ou <b>&nbsp;R$ [0.000] à vista&nbsp;</b> na contratação — [o que cobre]</span>
+          <span class="pill"><i></i>Validade da proposta: [N] dias</span>
+        </div>
+      </div>
+      <div class="chatcard" style="flex:1;">
+        <div class="chead"><div class="cava">v.</div><div class="cid"><b>vitamina.</b><span>online</span></div></div>
+        <div class="bubble">Qualquer ajuste, é só responder no WhatsApp.</div>
+        <div class="bubble bubble-reply"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <div class="pfoot">
       <div>
-        <p class="quem"><svg class="logo" style="height:16px" role="img" aria-label="Vitamina Publicitária"><use href="#vp-logo"/></svg></p>
-        <p class="quando" style="margin-top:.45rem">Nome e data</p>
+        <div class="wordmark" style="font-size:34px">vitamina<span class="dot">.</span></div>
+        <div class="sig">Direção, produção e distribuição</div>
       </div>
+      <div style="font-size:12px; color:var(--dim);">Proposta · [CLIENTE] · [Mês Ano]</div>
     </div>
   </div>
-  <figure><img src="FOTO-FECHO" alt="descreva a foto"></figure>
 </section>
+
+</body>
+</html>

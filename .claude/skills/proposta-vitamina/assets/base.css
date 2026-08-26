@@ -1,0 +1,119 @@
+/* Sistema visual das propostas Vitamina — carvão, off-white, teal.
+   Fontes: Inter Tight (títulos) + Inter (texto), via Google Fonts. */
+/* Cores da Vitamina: carvão, off-white, petróleo, sinal. */
+  :root {
+    --bg:       #0B0F12;
+    --fg:       #F2F5F7;
+    --dim:      rgba(242,245,247,.72);
+    --mute:     rgba(242,245,247,.42);
+    --line:     rgba(242,245,247,.16);
+    --acento:   #19B8AE;
+    --vp-ponto: #19B8AE;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Inter", ui-sans-serif, -apple-system, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .pagina { min-height: 100svh; display: grid; position: relative; }
+  .interno { padding: clamp(2rem, 5vw, 4.5rem); display: flex; flex-direction: column; justify-content: space-between; gap: 2.5rem; }
+
+  .logo { height: 26px; width: auto; display: block; align-self: flex-start; color: var(--fg); }
+  .selo {
+    font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: .66rem; letter-spacing: .24em; text-transform: uppercase; color: var(--mute);
+  }
+  .eyebrow {
+    font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: .66rem; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--acento); margin: 0;
+  }
+  h1, h2 {
+    font-family: "Inter Tight", sans-serif; font-weight: 800; letter-spacing: -.05em;
+    line-height: .96; margin: 0; text-wrap: balance;
+  }
+  h1 { font-size: clamp(2.6rem, 8vw, 5.6rem); max-width: 14ch; }
+  h2 { font-size: clamp(2.2rem, 5.5vw, 3.6rem); max-width: 12ch; }
+  h1 .t, h2 .t { color: var(--acento); }
+  .linha {
+    font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: clamp(1rem, 2vw, 1.2rem); line-height: 1.4;
+    color: var(--dim); max-width: 34ch; margin: 1.4rem 0 0;
+  }
+
+  /* ---------- Capa ---------- */
+  .capa { background: #000; }
+  .capa img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: 58% 50%; filter: grayscale(1) contrast(1.05);
+  }
+  .capa .veu {
+    position: absolute; inset: 0;
+    background: linear-gradient(96deg, rgba(11,15,18,.94) 0%, rgba(11,15,18,.72) 42%, rgba(11,15,18,.28) 74%, rgba(11,15,18,.55) 100%);
+  }
+  .capa .interno { position: relative; z-index: 1; }
+
+  /* ---------- Páginas com imagem lateral ---------- */
+  .dupla { grid-template-columns: 1fr; }
+  .dupla figure { margin: 0; position: relative; min-height: 44svh; overflow: hidden; }
+  .dupla figure img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* painel do site: o celular flutua, não sangra */
+  .dupla figure.tela { display: grid; place-items: center; padding: clamp(2rem, 5vw, 4rem);
+    background: radial-gradient(120% 90% at 50% 0%, #16222A 0%, #0B0F12 70%); }
+  .dupla figure.tela img { position: static; width: auto; height: auto;
+    max-height: min(74svh, 640px); max-width: 100%; border-radius: 20px;
+    box-shadow: 0 40px 90px -30px rgba(0,0,0,.85), 0 0 0 1px rgba(242,245,247,.14); }
+  @media (min-width: 56rem) {
+    .dupla { grid-template-columns: 1.05fr 1fr; }
+    .dupla figure { min-height: 100%; }
+    .dupla.espelho figure { order: -1; }
+  }
+
+  /* ---------- Números ---------- */
+  .valores { display: grid; gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 2.2rem; }
+  .valor { background: var(--bg); display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .4rem 1.5rem; padding: 1.15rem 0 1.25rem; }
+  .valor .q { font-family: "Inter Tight", sans-serif; font-weight: 600; font-size: 1.02rem; }
+  .valor .q small { display: block; font-weight: 400; font-size: .82rem; color: var(--mute); margin-top: .15rem; max-width: 34ch; }
+  .valor .p {
+    font-family: "Inter Tight", sans-serif; font-weight: 800; letter-spacing: -.05em;
+    font-variant-numeric: tabular-nums; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1; white-space: nowrap;
+  }
+  .valor .p small { font-size: .7rem; font-weight: 500; letter-spacing: 0; color: var(--mute); }
+  .valor.destaque .p { color: var(--acento); }
+  .valor.menor { padding: .85rem 0 .95rem; }
+  .valor.menor .q { font-weight: 400; font-size: .84rem; color: var(--mute); max-width: 36ch; }
+  .valor.menor .p { font-size: 1.05rem; color: var(--dim); }
+
+  .nota { font-size: .82rem; color: var(--mute); max-width: 44ch; margin: 1.4rem 0 0; }
+  .cond { font-size: .86rem; color: var(--dim); max-width: 42ch; margin: 1.1rem 0 0; }
+  .cond b { font-family: "Inter Tight", sans-serif; font-weight: 600; color: var(--fg); }
+  .demo { margin-top: 1.6rem; font-size: .86rem; }
+  .demo a {
+    font-family: "Inter Tight", sans-serif; font-weight: 600; color: var(--acento);
+    text-decoration: none; border-bottom: 1px solid currentColor; word-break: break-word;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1.6rem; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: .3rem .8rem; font-size: .8rem; color: var(--dim); }
+
+  .assina { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1.5rem 2.5rem; margin-top: 2.5rem; }
+  .assina div { border-top: 1px solid var(--line); padding-top: .55rem; }
+  .assina .quem { font-family: "Inter Tight", sans-serif; font-weight: 600; font-size: .84rem; }
+  .assina .quando { font-size: .72rem; color: var(--mute); margin-top: .15rem; }
+
+  :focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  @media print {
+    body { font-size: 10.5pt; }
+    .pagina { min-height: 0; break-after: page; }
+    .pagina:last-of-type { break-after: auto; }
+    .capa { min-height: 92vh; }
+    .dupla figure { min-height: 30vh; }
+    .valores, .assina, .demo { break-inside: avoid; }
+  }

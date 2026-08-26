@@ -1,0 +1,20 @@
+{
+  "skill_name": "proposta-vitamina",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Monta uma proposta em PDF pra um prospect novo da Vitamina: Café Aurora, uma cafeteria em Moema que quer presença digital de verdade. Frentes: identidade visual R$ 5.000 e site novo R$ 8.000; e as Vitaminas de conteúdo como passo seguinte (R$ 4 a 10 mil por mês, não incluído). O dono falou na reunião: 'meu Instagram é uma bagunça' e 'quero que o café pareça tão bom online quanto é pessoalmente'. Não tenho fotos do cliente ainda — gera imagens. Condições padrão de pagamento.",
+      "expected_output": "PDF 16:9 de ~6–10 páginas no padrão Vitamina (carvão #0B0F12, teal #19B8AE, Inter Tight, fotografia, pouco texto): capa, apresentação/prova, momento com as falas do dono como citações, entregas (identidade R$ 5.000, site R$ 8.000), ciclo das Vitaminas R$ 4–10 mil/mês como passo seguinte, investimento com Pix/12× juros da operadora, próximo passo.",
+      "files": [],
+      "assertions": [
+        "O PDF final existe e tem pelo menos 3 páginas",
+        "Os valores das frentes aparecem corretos: R$ 5.000 (identidade visual) e R$ 8.000 (site)",
+        "A faixa das Vitaminas mensais (R$ 4 mil a R$ 10 mil/mês) aparece como passo seguinte",
+        "As condições padrão aparecem: à vista no Pix e 12× no cartão com juros/taxa da operadora por conta do cliente",
+        "Pelo menos uma fala literal do cliente aparece como citação (ex.: 'meu Instagram é uma bagunça')",
+        "O documento usa a identidade da proposta Vitamina: fundo carvão #0B0F12 e acento teal #19B8AE",
+        "O logo da Vitamina (símbolo vp-logo / wordmark) está no documento"
+      ]
+    }
+  ]
+}

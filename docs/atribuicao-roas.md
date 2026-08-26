@@ -345,6 +345,7 @@ O `ctwa_clid` é a única atribuição determinística de CTWA e chega **apenas 
 primeira mensagem** da conversa, dentro do objeto `referral` do webhook da
 WhatsApp Cloud API. Se não for persistido ali, está perdido para sempre. O
 número de atendimento é a WABA da Laís — então isso depende dela (§7).
+Como verificar na prática se isso está de pé hoje: §7.1.
 
 ---
 
@@ -382,6 +383,73 @@ mandar como lista:
 
 Enquanto isso não é respondido, o pipeline funciona com o que controlamos: o
 código no texto do WhatsApp, o redirecionador e o casamento por telefone.
+
+### 7.1 Como testar sem depender da resposta
+
+Fornecedor não se testa por e-mail: se testa com um clique real. O protocolo
+abaixo custa uma tarde e o mínimo de verba, e devolve uma resposta binária.
+
+**Passo 0 — o interruptor (5 min, antes de gastar R$ 1).**
+Em *Meta Business Settings → Contas do WhatsApp → WABA da Focal*, conferir se
+**"Atribuição de anúncios" / Ads Attribution** está ligada. Desligada, a Meta
+não manda o objeto `referral` — e nenhum fornecedor consegue contornar isso.
+É a causa mais comum de "a Laís não recebe o `ctwa_clid`".
+
+**Passo 1 — o anúncio-isca.**
+Campanha CTWA nova, orçamento mínimo, público estreito de propósito (raio de
+1 km do escritório, faixa etária de quem vai clicar) para que praticamente só
+o testador veja. Dentro dela, **dois anúncios**, cada um com uma mensagem
+pré-preenchida diferente e marcada:
+
+- anúncio A → `Quero saber mais sobre o Artur 73 (TESTE-A1)`
+- anúncio B → `Quero saber mais sobre o Artur 73 (TESTE-A2)`
+
+Dois anúncios porque o teste não é "chegou algo da Meta?" — é "o sistema
+distingue **qual anúncio**?". A mensagem pré-preenchida é editável por
+anúncio (`page_welcome_message` em `object_story_spec`, ou o bloco de modelo
+de mensagem no Gerenciador), o que também prepara o plano B.
+
+**Passo 2 — o clique real.**
+- Prévia de anúncio **não serve**: só o clique num anúncio publicado e no ar
+  gera `ctwa_clid`. Esperar o status ficar *Ativo* e aparecer ao menos uma
+  impressão.
+- Usar um número que **nunca** falou com aquele WhatsApp. O `referral` vem na
+  primeira mensagem daquela conversa; número com histórico contamina o teste.
+- Clicar no anúncio no feed, **enviar a mensagem com o marcador intacto** e
+  ir até o fim da qualificação com a Laís. Conversa abandonada não vira lead
+  e o teste não conclui nada.
+- Anotar hora exata e número usado. Repetir com o anúncio B e um segundo
+  número.
+
+**Passo 3 — onde procurar a evidência, nesta ordem.**
+
+1. **CVIO** (`{cliente}.cvcrm.com.br/cvio`) — decisivo. Mostra o JSON literal
+   que a Laís postou no CVCRM. Filtrar pelo horário do teste e procurar
+   `ctwa_clid`, `source_id`, `campanha`, `anuncio` dentro de
+   `campos_adicionais`. Retenção de 30 dias: olhar na mesma semana.
+2. **O lead no CVCRM** — Origem, Mídia, Conversão, Campos adicionais,
+   Observações e a timeline de Interações. Fornecedor às vezes despeja tudo
+   numa observação em texto em vez de campo estruturado.
+3. **O relatório** — `pnpm roas:relatorio` e conferir se o lead aparece
+   atribuído a Meta / campanha / anúncio certo.
+
+**Como ler o resultado.**
+
+| O que aparece | Significa | Ação |
+| --- | --- | --- |
+| `ctwa_clid` **e** `source_id` em campo estruturado | melhor caso | ROAS por anúncio e envio da venda de volta pra Meta (CAPI) liberados |
+| só `source_id` | dá pro nosso relatório | no CAPI a venda casa por telefone/e-mail: match pior, mas funciona |
+| só dentro de texto/observação | funciona | pedir campo estruturado; enquanto isso, extrair por parser |
+| nada, mas `(TESTE-A1)` chegou | plano B ativo | atribuição por anúncio pelo marcador, sem depender da Laís |
+| nada de nada | plano C | apontar o anúncio para `/ir/whatsapp` em vez do WhatsApp nativo |
+
+O plano C troca o formato nativo (e o `ctwa_clid`, e normalmente um CPL pior,
+porque o clique passa pelo navegador) por um código `FCL` garantido, sob
+nosso controle. Só com o plano B também falhando.
+
+**O que pedir junto.** Em vez de "vocês passam o `ctwa_clid`?", pedir **um
+exemplo real do payload** que a Laís posta no CVCRM, com os dados pessoais
+borrados. Quem tem o campo manda em um dia; quem não tem, enrola.
 
 ---
 

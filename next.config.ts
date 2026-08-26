@@ -4,14 +4,23 @@ import type { NextConfig } from "next";
 // imagens sem otimização e basePath do projeto (/Focal).
 const isExport = process.env.STATIC_EXPORT === "1";
 
+// Rotas que só existem com servidor (recepção de lead, registro de
+// atribuição, redirecionador de WhatsApp, webhook do CVCRM) usam o sufixo
+// `.server.ts`. No build estático essa extensão não entra em `pageExtensions`,
+// então essas rotas simplesmente não são geradas em vez de quebrar o export.
+const extensoesServidor = ["server.ts", "server.tsx"];
+const extensoesBase = ["tsx", "ts", "jsx", "js"];
+
 const exportConfig: NextConfig = {
   output: "export",
   basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? "",
   trailingSlash: true,
   images: { unoptimized: true },
+  pageExtensions: extensoesBase,
 };
 
 const serverConfig: NextConfig = {
+  pageExtensions: [...extensoesServidor, ...extensoesBase],
   async redirects() {
     // Higiene de migração: URLs residuais do WordPress e da iteração anterior.
     return [

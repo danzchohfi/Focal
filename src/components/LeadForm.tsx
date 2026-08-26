@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
+import { capturaAtribuicao, obtemAtribuicao } from "@/lib/atribuicao/captura";
+import { registraEvento } from "@/lib/atribuicao/eventos";
+import { comCodigo } from "@/lib/atribuicao/whatsapp";
 
 type Variant = "artur" | "entregue" | "atendimento";
 type Tone = "verde" | "claro" | "escuro";
@@ -59,7 +62,13 @@ export default function LeadForm({
     e.preventDefault();
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
-    const payload = { ...data, contexto: contexto ?? "site", origem: window.location.pathname };
+    const atribuicao = obtemAtribuicao() ?? capturaAtribuicao();
+    const payload = {
+      ...data,
+      contexto: contexto ?? "site",
+      origem: window.location.pathname,
+      atribuicao,
+    };
 
     setEstado("enviando");
     try {
@@ -82,7 +91,8 @@ export default function LeadForm({
         data["mensagem"] ? `Mensagem: ${data["mensagem"]}` : ""
       }`;
       track("submit_form", { contexto: contexto ?? "site", canal: "whatsapp_fallback" });
-      setWaHref(waLink(site.whatsappComercial, texto));
+      registraEvento("formulario", { contexto: contexto ?? "site" });
+      setWaHref(comCodigo(waLink(site.whatsappComercial, texto), atribuicao?.ref));
       setEstado("fallback");
     }
   }

@@ -10,6 +10,9 @@ import ParticleField from "./lpc/ParticleField";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
+import { aoClicarWhatsApp, comCodigo, useHrefWhatsApp } from "@/lib/atribuicao/whatsapp";
+import { capturaAtribuicao, obtemAtribuicao, obtemRef } from "@/lib/atribuicao/captura";
+import { registraEvento } from "@/lib/atribuicao/eventos";
 import { getProjeto } from "@/data/projetos";
 
 // ── Dados comerciais da campanha ─────────────────────────────────────────
@@ -28,6 +31,9 @@ const PE_DIREITO = 5.5;
 // entre o piso e a altura final.
 const ESCALA_PISO = 440;
 const ESCALA_ALTURA = 320;
+
+/** Contexto de conversão desta LP (vai para o CRM junto do código). */
+const CONTEXTO = 'Artur 73 — LP C';
 
 function waMsg(sobre: string) {
   return waLink(site.whatsapp, `Olá! Vi o Artur 73 no site e quero ${sobre}`);
@@ -54,12 +60,16 @@ function Cta({
     variante === "solido"
       ? "bg-verde text-white"
       : "border border-white/30 text-white hover:border-white/70";
+  const href = useHrefWhatsApp(waMsg(sobre), { posicao, contexto: CONTEXTO });
   return (
     <a
-      href={waMsg(sobre)}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track("clique_whatsapp", { posicao })}
+      onClick={() => {
+        track("clique_whatsapp", { posicao, contexto: CONTEXTO });
+        aoClicarWhatsApp({ posicao, contexto: CONTEXTO });
+      }}
       className={`${base} ${skin} ${className}`}
     >
       {/* Brilho que varre o botão no hover */}
@@ -86,6 +96,8 @@ function FormRapido() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    // Sem isto o lead chega ao servidor sem origem e nasce órfão de campanha.
+    const atribuicao = obtemAtribuicao() ?? capturaAtribuicao();
     setEstado("enviando");
     try {
       const res = await fetch("/api/lead", {
@@ -98,6 +110,7 @@ function FormRapido() {
           quando: data.quando,
           contexto: "Artur 73 — LP C",
           origem: window.location.pathname,
+          atribuicao,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
@@ -105,10 +118,14 @@ function FormRapido() {
       setEstado("ok");
     } catch {
       track("submit_form", { contexto: "Artur 73 — LP C", canal: "whatsapp_fallback" });
+      registraEvento("formulario", { contexto: "Artur 73 — LP C" });
       setWaHref(
+        comCodigo(
         waLink(
           site.whatsapp,
           `Olá! Vi o Artur 73 no site. Meu nome é ${data.nome}. Quero receber as plantas e valores. Pretendo comprar: ${data.quando}.`
+        ),
+          obtemRef()
         )
       );
       setEstado("fallback");

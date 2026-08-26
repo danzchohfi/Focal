@@ -9,6 +9,9 @@ import Reveal from "./Reveal";
 import { asset } from "@/lib/asset";
 import { site, waLink } from "@/lib/site";
 import { track } from "@/lib/track";
+import { aoClicarWhatsApp, comCodigo, useHrefWhatsApp } from "@/lib/atribuicao/whatsapp";
+import { capturaAtribuicao, obtemAtribuicao, obtemRef } from "@/lib/atribuicao/captura";
+import { registraEvento } from "@/lib/atribuicao/eventos";
 import { getProjeto } from "@/data/projetos";
 
 // ── Dados comerciais da campanha ─────────────────────────────────────────
@@ -22,6 +25,9 @@ const comercial = {
 // ─────────────────────────────────────────────────────────────────────────
 
 const p = getProjeto("artur-73")!;
+
+/** Contexto de conversão desta LP (vai para o CRM junto do código). */
+const CONTEXTO = 'Artur 73';
 
 function waMsg(sobre: string) {
   return waLink(site.whatsapp, `Olá! Vi o Artur 73 no site e quero ${sobre}`);
@@ -40,12 +46,16 @@ function WaButton({
   grande?: boolean;
   className?: string;
 }) {
+  const href = useHrefWhatsApp(waMsg(sobre), { posicao, contexto: CONTEXTO });
   return (
     <a
-      href={waMsg(sobre)}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => track("clique_whatsapp", { posicao })}
+      onClick={() => {
+        track("clique_whatsapp", { posicao, contexto: CONTEXTO });
+        aoClicarWhatsApp({ posicao, contexto: CONTEXTO });
+      }}
       className={`cta inline-flex items-center justify-center gap-3 rounded-md bg-verde text-white transition-[background-color,transform] duration-200 hover:bg-[#14805f] active:scale-[0.985] ${
         grande ? "px-8 py-4 text-[14px]" : "px-6 py-3.5"
       } ${className}`}
@@ -67,6 +77,8 @@ function ShortForm() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    // Sem isto o lead chega ao servidor sem origem e nasce órfão de campanha.
+    const atribuicao = obtemAtribuicao() ?? capturaAtribuicao();
     setEstado("enviando");
     try {
       const res = await fetch("/api/lead", {
@@ -79,6 +91,7 @@ function ShortForm() {
           quando: data.quando,
           contexto: "Artur 73",
           origem: window.location.pathname,
+          atribuicao,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
@@ -86,10 +99,14 @@ function ShortForm() {
       setEstado("ok");
     } catch {
       track("submit_form", { contexto: "Artur 73", canal: "whatsapp_fallback" });
+      registraEvento("formulario", { contexto: "Artur 73" });
       setWaHref(
+        comCodigo(
         waLink(
           site.whatsapp,
           `Olá! Vi o Artur 73 no site. Meu nome é ${data.nome}. Quero receber as plantas e valores. Pretendo comprar: ${data.quando}.`
+        ),
+          obtemRef()
         )
       );
       setEstado("fallback");

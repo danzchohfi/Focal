@@ -33,6 +33,18 @@ export default function HeroFilm() {
     let cancelado = false;
     let hls: { destroy(): void } | null = null;
 
+    // Fora da tela o filme PARA: o hero fica lá em cima enquanto a página
+    // inteira rola, e um HLS de 1080p decodificando invisível disputa CPU
+    // com o scrub do filme da obra logo abaixo. Volta a tocar quando reaparece.
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) v.play().catch(() => {});
+        else v.pause();
+      },
+      { threshold: 0 }
+    );
+    io.observe(v);
+
     // HLS direto: é o formato garantido no Stream (o MP4 progressivo depende
     // de configuração no painel e aqui só serve de fallback sem JS).
     (async () => {
@@ -52,6 +64,7 @@ export default function HeroFilm() {
 
     return () => {
       cancelado = true;
+      io.disconnect();
       hls?.destroy();
     };
   }, []);

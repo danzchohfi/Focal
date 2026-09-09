@@ -194,8 +194,33 @@ export default function ObraScroll({ fundo = "#0C100F" }: { fundo?: string }) {
       }
     };
 
-    /* ── Laço mestre: progresso → timeline da UI + tempo do vídeo ── */
+    /* ── Laço mestre: progresso → timeline da UI + tempo do vídeo ──
+       Roda por rAF só enquanto há o que animar (scroll recente, inércia,
+       seek em voo ou vídeo correndo atrás do alvo). Parado, não custa nada. */
+
+    // Por que não "currentTime = alvo" a cada frame: cada atribuição é um
+    // seek, e o decoder volta ao keyframe anterior (2–4 s de filme no
+    // Stream) e decodifica tudo até o alvo — dezenas de frames de 1080p por
+    // notch da roda, e a imagem congela entre uma busca e outra. Então:
+    // pra FRENTE e perto, o vídeo TOCA na velocidade certa pra alcançar o
+    // alvo (decodificação sequencial, barata); seek só pra trás ou em salto
+    // grande — um por vez, nunca repetido pro mesmo alvo.
+    const BANDA = 0.05; // s: diferença que não vale corrigir
+    const SALTO = 2.5; // s: acima disso vai de seek; abaixo, toca pra frente
+    const TAXA_MAX = 8; // playbackRate máximo ao correr atrás do alvo (Chrome aceita até 16)
+    let alvoPedido = -1;
+    let tocando = false;
+    let podeTocar = true;
+    let agendado = false;
+
+    const pausar = () => {
+      if (!tocando) return;
+      tocando = false;
+      video.pause();
+    };
+
     const passo = () => {
+      agendado = false;
       if (!rodando) return;
       const r = wrapper.getBoundingClientRect();
       const percurso = r.height - window.innerHeight;
@@ -203,6 +228,7 @@ export default function ObraScroll({ fundo = "#0C100F" }: { fundo?: string }) {
       // Inércia curta (≈ scrub 0.6 do ScrollTrigger)
       suave += (bruto - suave) * 0.16;
       if (Math.abs(bruto - suave) < 0.001) suave = bruto;
+      let animando = suave !== bruto;
 
       tl?.progress(suave);
 
@@ -214,25 +240,64 @@ export default function ObraScroll({ fundo = "#0C100F" }: { fundo?: string }) {
 
       const dur = video.duration;
       if (Number.isFinite(dur) && dur > 0) {
+        // O vídeo mira o scroll CRU (a UI é que tem inércia): alvo que desliza
+        // frame a frame viraria uma busca por frame no caminho de seek.
         const alvo = bruto * Math.max(dur - 0.08, 0);
         const delta = alvo - video.currentTime;
-        if (Math.abs(delta) > 0.033 && !video.seeking) {
-          // Saltos grandes vão direto; os pequenos aproximam por lerp.
-          video.currentTime = Math.abs(delta) > 1.5 ? alvo : video.currentTime + delta * 0.28;
+        if (Math.abs(delta) <= BANDA || (tocando && delta < 0 && delta > -0.4)) {
+          // Chegou — ou passou um tiquinho do alvo enquanto tocava: para e fica.
+          pausar();
+        } else if (delta > 0 && delta < SALTO && podeTocar) {
+          // Em degraus de 0,25: senão é um ajuste de taxa por frame enquanto alcança.
+          const taxa = Math.round(Math.min(TAXA_MAX, Math.max(0.5, delta / 0.2)) * 4) / 4;
+          if (video.playbackRate !== taxa) video.playbackRate = taxa;
+          if (!tocando) {
+            tocando = true;
+            video.play().catch((e: unknown) => {
+              // pause() no meio do play() é normal (AbortError); qualquer
+              // outra recusa (ex.: baixo consumo no iOS) manda tudo pro seek.
+              tocando = false;
+              if ((e as { name?: string })?.name !== "AbortError") podeTocar = false;
+              agendar();
+            });
+          }
+          animando = true;
+        } else {
+          pausar();
+          if (video.seeking) {
+            animando = true; // espera o seek em voo terminar
+          } else if (Math.abs(alvo - alvoPedido) > BANDA) {
+            alvoPedido = alvo;
+            video.currentTime = alvo;
+            animando = true;
+          }
+          // senão: esse alvo já foi buscado e o browser parou onde conseguiu — não insiste
         }
       }
+      if (animando) agendar();
+    };
+    const agendar = () => {
+      if (agendado || !rodando) return;
+      agendado = true;
       raf = requestAnimationFrame(passo);
     };
     const ligar = () => {
-      if (!rodando) {
-        rodando = true;
-        raf = requestAnimationFrame(passo);
-      }
+      if (rodando) return;
+      rodando = true;
+      window.addEventListener("scroll", agendar, { passive: true });
+      agendar();
     };
     const desligar = () => {
       rodando = false;
+      window.removeEventListener("scroll", agendar);
       cancelAnimationFrame(raf);
+      agendado = false;
+      pausar();
     };
+    // Seek terminou: reavalia na hora (o alvo pode ter andado enquanto isso).
+    // Metadados chegaram: alinha ao scroll atual sem esperar o usuário rolar.
+    video.addEventListener("seeked", agendar);
+    video.addEventListener("loadedmetadata", agendar);
 
     const io = new IntersectionObserver(
       ([e]) => {
@@ -265,6 +330,8 @@ export default function ObraScroll({ fundo = "#0C100F" }: { fundo?: string }) {
     return () => {
       cancelado = true;
       desligar();
+      video.removeEventListener("seeked", agendar);
+      video.removeEventListener("loadedmetadata", agendar);
       io.disconnect();
       ioEntrada.disconnect();
       hls?.destroy();
